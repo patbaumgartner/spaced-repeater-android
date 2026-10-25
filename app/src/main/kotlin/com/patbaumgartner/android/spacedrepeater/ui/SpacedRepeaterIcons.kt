@@ -20,4 +20,7 @@ internal object SpacedRepeaterIcons {
 
     val Settings: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.ic_settings)
+
+    val Delete: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.ic_delete)
 }
