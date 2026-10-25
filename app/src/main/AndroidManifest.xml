@@ -4,6 +4,11 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- The app is offline-only; okhttp (pulled in transitively) declares
+         INTERNET, so strip it from the merged manifest. -->
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:node="remove" />
 
     <application
         android:name=".SpacedRepeaterApp"
