@@ -15,7 +15,7 @@
 | Item | Why it exists | When to address |
 |------|---------------|-----------------|
 | Single-level undo only | current scope limit ([UC-05](../use-cases/use-cases.md#uc-05-undo-review)) | Later if learners need multi-step undo. |
-| Stats screen optional | Study flows take priority | Revisit after the core study workflows ([UC-06](../use-cases/use-cases.md#uc-06-view-progress)) are complete. |
+| Stats screen | Study flows take priority | Done — UC-06 is implemented. |
 | `INTERNET` permission declared but unused | Reserves future sync | Remove or use in sync epic. |
 | Tags as comma-separated string | Simplest current model | Normalize to a join table when filtering ships. |
 | No deck export | Out of current scope | Revisit alongside a stable, documented deck package format. |

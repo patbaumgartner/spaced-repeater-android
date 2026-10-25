@@ -68,6 +68,7 @@ class SM2SchedulerTest {
     @Test
     fun `easy adds bonus to interval`() {
         val schedule = scheduler.calculateNextReview(reviewState(10, 2.5f), ReviewRating.EASY, now)
+        @Suppress("MATH_ROUND_IS_LONG") // Intentionally uses Java's round-half-up to verify scheduler's rounding
         val expected = Math.round(Math.round(10 * 2.65f) * 1.3f).toInt()
         assertEquals(expected, schedule.interval)
         assertEquals(2.65f, schedule.easeFactor, 0.001f)
@@ -76,14 +77,14 @@ class SM2SchedulerTest {
     @Test
     fun `lapse resets to relearning phase with 1 minute step`() {
         val schedule = scheduler.calculateNextReview(reviewState(50, 2.5f), ReviewRating.AGAIN, now)
-        assertEquals(CardPhase.RELARNING, schedule.nextPhase)
+        assertEquals(CardPhase.RELEARNING, schedule.nextPhase)
         assertEquals(1, schedule.interval)
         assertEquals(now.plus(Duration.ofMinutes(1)), schedule.dueAt)
     }
 
     @Test
     fun `relearning Good graduates back to review`() {
-        val schedule = scheduler.calculateNextReview(reviewState(1, 2.5f, CardPhase.RELARNING), ReviewRating.GOOD, now)
+        val schedule = scheduler.calculateNextReview(reviewState(1, 2.5f, CardPhase.RELEARNING), ReviewRating.GOOD, now)
         assertEquals(CardPhase.REVIEW, schedule.nextPhase)
         assertEquals(now.plus(Duration.ofDays(1)), schedule.dueAt)
     }

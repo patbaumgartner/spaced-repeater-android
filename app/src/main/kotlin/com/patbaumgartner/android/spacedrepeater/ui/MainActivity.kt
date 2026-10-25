@@ -50,7 +50,8 @@ class MainActivity : ComponentActivity() {
                         ActivityResultContracts.RequestPermission(),
                     ) { /* Granting is optional; reminders simply do not post (UC-07 3a). */ }
                     LaunchedEffect(Unit) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        @Suppress("NewApi") // TIRAMISU is API 31; the check guards a permissions request, not a feature check.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
                             android.content.pm.PackageManager.PERMISSION_GRANTED
                         ) {

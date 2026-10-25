@@ -54,8 +54,8 @@ fun parseCardBlocks(markdown: String): List<CardBlock> {
 internal fun CardContent(
     markdown: String,
     style: TextStyle,
-    color: Color = Color.Unspecified,
     modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
 ) {
     val blocks = remember(markdown) { parseCardBlocks(markdown) }
     Column(

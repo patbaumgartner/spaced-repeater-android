@@ -18,7 +18,7 @@ interface CardDao {
         INNER JOIN card_states ON card_states.cardId = cards.id
         WHERE cards.deckId = :deckId AND card_states.dueDate <= :now
         ORDER BY
-            CASE WHEN card_states.phase IN ('LEARNING', 'RELARNING') THEN 0 ELSE 1 END,
+            CASE WHEN card_states.phase IN ('LEARNING', 'RELEARNING') THEN 0 ELSE 1 END,
             card_states.dueDate ASC
         """,
     )

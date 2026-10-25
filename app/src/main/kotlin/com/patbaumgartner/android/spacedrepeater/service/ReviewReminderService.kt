@@ -26,8 +26,12 @@ class ReviewReminderService(
     private val context: Context,
     private val workManager: WorkManager,
 ) {
-    fun scheduleNext(dueAtMillis: Long, dueCount: Int) {
-        if (dueCount <= 0) return
+    /**
+     * Schedules (or reschedules) the review-reminder worker to fire at [dueAtMillis].
+     * The worker itself checks the current due count and notification permission at execution time,
+     * so a non-positive due count here does not prevent future reminders from being delivered.
+     */
+    fun scheduleNext(dueAtMillis: Long) {
         val delay = (dueAtMillis - System.currentTimeMillis()).coerceAtLeast(0)
         val request = OneTimeWorkRequestBuilder<ReviewReminderWorker>()
             .setInitialDelay(delay, TimeUnit.MILLISECONDS)

@@ -22,7 +22,7 @@ class SM2Scheduler {
         return when (state.phase) {
             CardPhase.NEW, CardPhase.LEARNING -> learningStep(state, rating, now)
             CardPhase.REVIEW -> reviewStep(state, rating, now)
-            CardPhase.RELARNING -> relearningStep(state, rating, now)
+            CardPhase.RELEARNING -> relearningStep(state, rating, now)
         }
     }
 
@@ -60,13 +60,13 @@ class SM2Scheduler {
                 interval = 1,
                 easeFactor = (state.easeFactor - 0.2f).coerceAtLeast(easeFloor),
                 dueAt = now.plus(Duration.ofMinutes(1)),
-                nextPhase = CardPhase.RELARNING,
+                nextPhase = CardPhase.RELEARNING,
             )
             ReviewRating.HARD -> CardSchedule(
                 interval = 10,
                 easeFactor = (state.easeFactor - 0.15f).coerceAtLeast(easeFloor),
                 dueAt = now.plus(Duration.ofMinutes(10)),
-                nextPhase = CardPhase.RELARNING,
+                nextPhase = CardPhase.RELEARNING,
             )
             ReviewRating.GOOD, ReviewRating.EASY -> CardSchedule(
                 interval = 1,
@@ -86,7 +86,7 @@ class SM2Scheduler {
                 interval = 1,
                 easeFactor = (state.easeFactor - 0.2f).coerceAtLeast(easeFloor),
                 dueAt = now.plus(Duration.ofMinutes(1)),
-                nextPhase = CardPhase.RELARNING,
+                nextPhase = CardPhase.RELEARNING,
             )
             ReviewRating.HARD -> {
                 val ef = (state.easeFactor - 0.15f).coerceAtLeast(easeFloor)

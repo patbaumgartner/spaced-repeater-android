@@ -97,10 +97,9 @@ class StudyViewModel @Inject constructor(
     private fun scheduleReminder() {
         viewModelScope.launch {
             val nextDue = cardRepository.nextDueAfter(now = System.currentTimeMillis())
-            if (nextDue != null) {
-                val count = cardRepository.dueCountNow()
-                reminderService.scheduleNext(nextDue, count)
-            }
+            // Always schedule the worker — it will re-check due count and permission at execution time.
+            // This handles the case where a session exhausts all due cards but future cards become due later.
+            reminderService.scheduleNext(nextDue ?: Long.MAX_VALUE)
         }
     }
 }
