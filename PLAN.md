@@ -15,10 +15,10 @@ Implement the spaced-repeater-android app end-to-end to match the documented des
 - Permission request for `POST_NOTIFICATIONS` on TIRAMISU+
 - Tests: 17 unit tests incl. E2E test against real sample zip (`sample/web-entwicklung-hs2026-gesichter-namen.zip`)
 - Full gate green: testDebugUnitTest, lintDebug, assembleDebug, assembleRelease, yamllint, git diff --check
+- Deck delete in UI: per-deck delete action with confirmation dialog wired to `HomeViewModel.deleteDeck`
+- Import preview shows tags/description from manifest (minor UX polish)
 
 ## Findings (follow-ups, low-risk)
-- Deck delete in UI: `deleteDeck` exists in `HomeViewModel` but no confirmation + menu/action wired on Home screen (technical debt, not blocking UC-02)
-- Import preview: could show tags/description from manifest (minor UX polish)
 - Instrumented androidTest coverage missing (JVM-only today)
 - Tags stored comma-separated (see ADR-0003 tech debt); planned join table later
 - Deck export missing (out of scope)

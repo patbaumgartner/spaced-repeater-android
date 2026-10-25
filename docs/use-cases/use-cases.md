@@ -61,7 +61,7 @@ A learner imports a deck package (`.zip`) so its cards become available for stud
 1. Learner taps the import action on the Home Screen.
 2. System opens the system file picker filtered to `.zip` files.
 3. Learner selects a deck package.
-4. System parses `deck.json` metadata and shows a preview (deck name, card count).
+4. System parses `deck.json` metadata and shows a preview (deck name, description, tags, card count).
 5. Learner confirms the import.
 6. System extracts the archive, parses each markdown card, and copies media files to app-private storage.
 7. System persists the deck, cards, and initial card states in the local database.

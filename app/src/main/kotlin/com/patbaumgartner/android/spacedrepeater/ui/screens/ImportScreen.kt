@@ -97,6 +97,24 @@ internal fun ImportScreen(
                         color = SpacedRepeaterTheme.accents.textMuted,
                     )
                     Text(state.preview!!.name, style = MaterialTheme.typography.headlineSmall)
+                    if (state.preview!!.description.isNotBlank()) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            stringResource(R.string.import_preview_description),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = SpacedRepeaterTheme.accents.textMuted,
+                        )
+                        Text(state.preview!!.description, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    if (state.preview!!.tags.isNotEmpty()) {
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            stringResource(R.string.import_preview_tags),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = SpacedRepeaterTheme.accents.textMuted,
+                        )
+                        Text(state.preview!!.tags.joinToString(", "), style = MaterialTheme.typography.bodyMedium)
+                    }
                     Spacer(Modifier.height(8.dp))
                     Text(
                         pluralStringResource(R.plurals.import_preview_cards, state.preview!!.cardCount),
