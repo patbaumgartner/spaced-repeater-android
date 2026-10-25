@@ -34,6 +34,8 @@
     <string name="import_title">Import deck</string>
     <string name="import_pick">Choose a .zip deck package</string>
     <string name="import_preview_name">Deck name</string>
+    <string name="import_preview_description">Description</string>
+    <string name="import_preview_tags">Tags</string>
     <string name="import_confirm">Import</string>
     <string name="import_cancel">Cancel</string>
     <string name="import_importing">Importing…</string>

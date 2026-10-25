@@ -22,6 +22,8 @@ data class ImportUiState(
 data class ImportPreview(
     val name: String,
     val cardCount: Int,
+    val description: String = "",
+    val tags: List<String> = emptyList(),
 )
 
 data class ImportOutcome(
@@ -45,7 +47,12 @@ class ImportViewModel @Inject constructor(
                 val manifest = contentResolver.openInputStream(uri)?.use { importer.readManifest(it) }
                     ?: throw Exception("Could not open archive")
                 _uiState.value = ImportUiState(
-                    preview = ImportPreview(manifest.name, manifest.declaredCardCount ?: 0),
+                    preview = ImportPreview(
+                        name = manifest.name,
+                        cardCount = manifest.declaredCardCount ?: 0,
+                        description = manifest.description,
+                        tags = manifest.tags,
+                    ),
                 )
             } catch (e: Exception) {
                 _uiState.value = ImportUiState(error = e.message ?: "Import failed")
