@@ -17,6 +17,7 @@ Implement the spaced-repeater-android app end-to-end to match the documented des
 - Full gate green: testDebugUnitTest, lintDebug, assembleDebug, assembleRelease, yamllint, git diff --check
 - Deck delete in UI: per-deck delete action with confirmation dialog wired to `HomeViewModel.deleteDeck`
 - Import preview shows tags/description from manifest (minor UX polish)
+- Stripped transitive `INTERNET` permission from merged manifest (offline-first)
 
 ## Findings (follow-ups, low-risk)
 - Instrumented androidTest coverage missing (JVM-only today)
