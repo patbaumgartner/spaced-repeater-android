@@ -37,6 +37,10 @@ yamllint .
 git diff --check
 ```
 
+If you changed DAOs, entities, or Room queries, also run the instrumented
+DAO tests on a device or emulator (`./gradlew connectedDebugAndroidTest`); CI
+runs them automatically.
+
 ## Pull requests
 
 Explain the user-visible effect, why the change is needed, and exactly how it

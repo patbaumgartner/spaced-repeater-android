@@ -22,7 +22,9 @@ above before considering the change complete.
 ## Project structure and conventions
 
 - The Android application lives in `app/`; JVM tests live under
-  `app/src/test/`.
+  `app/src/test/`, instrumented DAO tests under `app/src/androidTest/`
+  (run with `connectedDebugAndroidTest` on a device or emulator; CI runs
+  them on an emulator).
 - Dependencies and plugin versions belong in `gradle/libs.versions.toml`.
 - Keep scheduling and other business rules independently testable; avoid
   coupling domain behavior to Android APIs.
