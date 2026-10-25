@@ -143,12 +143,25 @@ class StatsRepositoryTest {
     }
 
     @Test
-    fun `streak is zero when no reviews today even if yesterday studied`() = runBlocking {
+    fun `streak carries over from yesterday when not yet studied today`() = runBlocking {
         coEvery { logDao.today(any(), any()) } returns emptyList()
         coEvery { logDao.allReviewedAt() } returns listOf(
             instant(1),  // yesterday
             instant(2),  // 2 days ago
             instant(3),  // 3 days ago
+        )
+
+        val stats = repo.computeStats(zone)
+
+        assertEquals(3, stats.streakDays)
+    }
+
+    @Test
+    fun `streak is zero when the last studied day is older than yesterday`() = runBlocking {
+        coEvery { logDao.today(any(), any()) } returns emptyList()
+        coEvery { logDao.allReviewedAt() } returns listOf(
+            instant(2),  // 2 days ago — gap between yesterday and the run
+            instant(3),
         )
 
         val stats = repo.computeStats(zone)

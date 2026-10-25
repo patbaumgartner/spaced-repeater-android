@@ -63,8 +63,9 @@ Partial states are never visible: a crash mid-import leaves no half-imported dec
 
 | Level | Target | Tooling |
 |-------|--------|---------|
-| Unit (JVM) | SM-2 scheduler, MarkdownParser, importer | JUnit; pure functions, exhaustive rule coverage |
-| Integration | DeckImporter end-to-end (fixture ZIP → DB) | JVM test with the real fixture ZIP |
+| Unit (JVM) | SM-2 scheduler, MarkdownParser, StatsRepository streak logic | JUnit; pure functions, exhaustive rule coverage |
+| Import end-to-end | `SampleDeckEndToEndTest`: real sample ZIP → parser, media extraction, reference rewrite | JVM test (skips gracefully when ZIP absent) |
+| Stats integration | `SampleDeckStatsIntegrationTest`: full import → rate cards → verify streak/retention | In-memory Room on emulator; uses the Dropbox sample ZIP |
 | DAO (instrumented) | Room DAOs on real SQLite (joins, FK cascades, flows) | In-memory Room DB under `app/src/androidTest/`, run on an emulator |
 | UI | Study session flow, import flow | Compose UI tests (not yet covered) |
 | CI | Lint + tests + debug build per push; instrumented tests on an emulator | GitHub Actions, matching watchdog workflows |

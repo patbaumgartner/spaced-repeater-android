@@ -26,6 +26,9 @@ interface DeckDao {
     )
     fun observeDecksWithCounts(now: Long): Flow<List<DeckWithCounts>>
 
+    @Query("SELECT * FROM decks")
+    suspend fun allDecks(): List<DeckEntity>
+
     @Query("SELECT * FROM decks WHERE id = :deckId")
     suspend fun getById(deckId: Long): DeckEntity?
 

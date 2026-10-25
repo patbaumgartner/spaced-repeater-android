@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,6 +30,7 @@ internal fun StatsScreen(
     onBack: () -> Unit,
 ) {
     val stats by viewModel.stats.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { viewModel.refresh() }
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
         PageHeader(stringResource(R.string.stats_title), onBack)
         val s = stats

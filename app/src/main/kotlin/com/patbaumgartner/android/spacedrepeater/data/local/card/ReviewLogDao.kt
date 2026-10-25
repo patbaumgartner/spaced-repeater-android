@@ -17,6 +17,9 @@ interface ReviewLogDao {
     @Query("SELECT * FROM review_log WHERE id = :id")
     suspend fun getById(id: Long): ReviewLogEntity?
 
+    @Query("UPDATE review_log SET reviewedAt = :ts WHERE id = :id")
+    suspend fun updateReviewedAt(id: Long, ts: Long)
+
     @Query("SELECT * FROM review_log ORDER BY reviewedAt DESC LIMIT 1")
     suspend fun latest(): ReviewLogEntity?
 
