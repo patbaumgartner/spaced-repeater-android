@@ -78,6 +78,7 @@ com.patbaumgartner.android.spacedrepeater
 | `HomeScreen` | Deck list with due badges, progress; import FAB; stats entry. |
 | `StudyScreen` | Session loop: question → reveal → rate → next; undo; progress bar. |
 | `ImportScreen` | SAF launch, preview, progress, result. |
+| `StatsScreen` | Cards studied today, retention rate, day streak; refreshes on every visit so recent reviews are reflected immediately. |
 | `FlashcardView` | Renders markdown front/back, optionally an image. |
 | `RatingButtons` | Again / Hard / Good / Easy row; emits rating events. |
 

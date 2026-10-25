@@ -19,6 +19,8 @@ Implement the spaced-repeater-android app end-to-end to match the documented des
 - Import preview shows tags/description from manifest (minor UX polish)
 - Stripped transitive `INTERNET` permission from merged manifest (offline-first)
 - Instrumented DAO tests: in-memory Room tests for Deck/ReviewLog DAOs + CI emulator job (reactivecircus/android-emulator-runner, SHA-pinned)
+- Stats screen: `LaunchedEffect` refresh on every composable re-entry; streak shows last achieved run (not 0) when learner hasn't studied today
+- Instrumented integration tests: `SampleDeckStatsIntegrationTest` uses Dropbox sample zip to verify full import + stats streak/retention math end-to-end
 
 ## Findings (follow-ups, low-risk)
 - Tags stored comma-separated (see ADR-0003 tech debt); planned join table later

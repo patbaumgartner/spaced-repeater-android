@@ -19,6 +19,11 @@ class StatsViewModel @Inject constructor(
     val stats: StateFlow<Stats?> = _stats.asStateFlow()
 
     init {
+        refresh()
+    }
+
+    /** Recomputes stats so the screen reflects reviews made since the last visit. */
+    fun refresh() {
         viewModelScope.launch {
             _stats.value = statsRepository.computeStats()
         }

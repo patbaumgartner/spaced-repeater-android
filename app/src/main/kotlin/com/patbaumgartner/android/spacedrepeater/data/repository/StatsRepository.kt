@@ -29,15 +29,27 @@ class StatsRepository(
         val days = reviewLogDao.allReviewedAt()
             .map { Instant.ofEpochMilli(it).atZone(zoneId).toLocalDate().toEpochDay() }
             .toSet()
-        val streak = longestStreakEndingToday(days, zoneId)
+        val streak = longestStreak(days, zoneId)
         return Stats(studiedToday, retention, streak)
     }
 
-    private fun longestStreakEndingToday(dayBuckets: Set<Long>, zoneId: ZoneId): Int {
+    /**
+     * The consecutive-day run ending at the most recent studied day (today or
+     * yesterday). Returning the last achieved streak instead of 0 keeps the
+     * number stable on a day the learner has not yet studied; an empty history
+     * still yields 0.
+     */
+    private fun longestStreak(dayBuckets: Set<Long>, zoneId: ZoneId): Int {
         if (dayBuckets.isEmpty()) return 0
         val today = LocalDate.now(zoneId).toEpochDay()
+        val yesterday = today - 1
+        val anchor = when {
+            today in dayBuckets -> today
+            yesterday in dayBuckets -> yesterday
+            else -> return 0
+        }
         var streak = 0
-        var day = today
+        var day = anchor
         while (day in dayBuckets) {
             streak += 1
             day -= 1

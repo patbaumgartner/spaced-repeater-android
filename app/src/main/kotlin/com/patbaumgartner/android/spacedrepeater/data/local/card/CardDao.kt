@@ -24,6 +24,9 @@ interface CardDao {
     )
     fun observeDueCards(deckId: Long, now: Long): Flow<List<CardEntity>>
 
+    @Query("SELECT * FROM cards WHERE deckId = :deckId")
+    suspend fun getByDeckId(deckId: Long): List<CardEntity>
+
     @Query("SELECT * FROM cards WHERE id = :cardId")
     suspend fun getById(cardId: Long): CardEntity?
 
