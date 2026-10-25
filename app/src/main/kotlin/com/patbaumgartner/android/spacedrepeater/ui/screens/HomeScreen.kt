@@ -1,6 +1,5 @@
 package com.patbaumgartner.android.spacedrepeater.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,13 +16,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -34,7 +40,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patbaumgartner.android.spacedrepeater.R
 import com.patbaumgartner.android.spacedrepeater.ui.SpacedRepeaterIcons
 import com.patbaumgartner.android.spacedrepeater.ui.theme.SpacedRepeaterTheme
-import java.time.Instant
 
 @Composable
 internal fun HomeScreen(
@@ -45,6 +50,26 @@ internal fun HomeScreen(
     onSettings: () -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var pendingDelete by remember { mutableStateOf<HomeDeckUi?>(null) }
+
+    pendingDelete?.let { row ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text(stringResource(R.string.deck_delete_title)) },
+            text = { Text(stringResource(R.string.deck_delete_message, row.deck.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteDeck(row.deck)
+                    pendingDelete = null
+                }) { Text(stringResource(R.string.deck_delete_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) {
+                    Text(stringResource(R.string.deck_delete_cancel))
+                }
+            },
+        )
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -93,7 +118,11 @@ internal fun HomeScreen(
                 }
                 state.decks.isEmpty() -> item { EmptyHome(onImport) }
                 else -> items(state.decks, key = { it.deck.id }) { row ->
-                    DeckCard(row, onOpenDeck = { onOpenDeck(row.deck.id) })
+                    DeckCard(
+                        row,
+                        onOpenDeck = { onOpenDeck(row.deck.id) },
+                        onDelete = { pendingDelete = row },
+                    )
                 }
             }
         }
@@ -126,18 +155,20 @@ private fun EmptyHome(onImport: () -> Unit) {
 }
 
 @Composable
-private fun DeckCard(row: HomeDeckUi, onOpenDeck: () -> Unit) {
+private fun DeckCard(row: HomeDeckUi, onOpenDeck: () -> Unit, onDelete: () -> Unit) {
     val deck = row.deck
+    var menuOpen by remember { mutableStateOf(false) }
+
     Card(
         onClick = onOpenDeck,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).padding(start = 12.dp)) {
                 Text(deck.name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.size(4.dp))
                 Text(
@@ -160,6 +191,25 @@ private fun DeckCard(row: HomeDeckUi, onOpenDeck: () -> Unit) {
                     color = SpacedRepeaterTheme.accents.textMuted,
                     modifier = Modifier.padding(start = 12.dp),
                 )
+            }
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(
+                        SpacedRepeaterIcons.Delete,
+                        contentDescription = stringResource(R.string.deck_delete_title),
+                        tint = SpacedRepeaterTheme.accents.textMuted,
+                    )
+                }
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.deck_delete_confirm)) },
+                        leadingIcon = { Icon(SpacedRepeaterIcons.Delete, contentDescription = null) },
+                        onClick = {
+                            menuOpen = false
+                            onDelete()
+                        },
+                    )
+                }
             }
         }
     }

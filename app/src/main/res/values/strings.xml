@@ -56,6 +56,11 @@
     <string name="stats_empty">No study data yet.</string>
 
     <string name="action_back">Back</string>
+    <string name="deck_delete_title">Delete deck?</string>
+    <string name="deck_delete_message">Deleting “%1$s” will permanently remove the deck and all its study progress. This cannot be undone.</string>
+    <string name="deck_delete_confirm">Delete</string>
+    <string name="deck_delete_cancel">Cancel</string>
+
     <string name="error_import">Import failed: %1$s</string>
 
     <string name="settings_title">Settings</string>
