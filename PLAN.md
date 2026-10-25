@@ -18,9 +18,9 @@ Implement the spaced-repeater-android app end-to-end to match the documented des
 - Deck delete in UI: per-deck delete action with confirmation dialog wired to `HomeViewModel.deleteDeck`
 - Import preview shows tags/description from manifest (minor UX polish)
 - Stripped transitive `INTERNET` permission from merged manifest (offline-first)
+- Instrumented DAO tests: in-memory Room tests for Deck/ReviewLog DAOs + CI emulator job (reactivecircus/android-emulator-runner, SHA-pinned)
 
 ## Findings (follow-ups, low-risk)
-- Instrumented androidTest coverage missing (JVM-only today)
 - Tags stored comma-separated (see ADR-0003 tech debt); planned join table later
 - Deck export missing (out of scope)
 

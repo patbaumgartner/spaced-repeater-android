@@ -63,9 +63,10 @@ Partial states are never visible: a crash mid-import leaves no half-imported dec
 
 | Level | Target | Tooling |
 |-------|--------|---------|
-| Unit (JVM) | SM-2 scheduler, MarkdownParser | JUnit + Kotest-style assertions; pure functions, exhaustive rule coverage |
-| Integration | DeckImporter end-to-end (fixture ZIP → DB) | Room in-memory DB, Robolectric or instrumented |
-| UI | Study session flow, import flow | Compose UI tests |
-| CI | Lint + tests + debug build per push | GitHub Actions, matching watchdog workflows |
+| Unit (JVM) | SM-2 scheduler, MarkdownParser, importer | JUnit; pure functions, exhaustive rule coverage |
+| Integration | DeckImporter end-to-end (fixture ZIP → DB) | JVM test with the real fixture ZIP |
+| DAO (instrumented) | Room DAOs on real SQLite (joins, FK cascades, flows) | In-memory Room DB under `app/src/androidTest/`, run on an emulator |
+| UI | Study session flow, import flow | Compose UI tests (not yet covered) |
+| CI | Lint + tests + debug build per push; instrumented tests on an emulator | GitHub Actions, matching watchdog workflows |
 
 Scheduler tests must cover: fresh card, learning steps (1 min → 10 min → graduate), ease floor at 1.3, Easy bonus, lapse resets, and interval rounding.
