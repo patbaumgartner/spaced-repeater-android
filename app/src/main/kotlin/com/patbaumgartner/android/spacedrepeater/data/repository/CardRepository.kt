@@ -1,7 +1,8 @@
 package com.patbaumgartner.android.spacedrepeater.data.repository
 
-import androidx.room.withTransaction
+import com.patbaumgartner.android.spacedrepeater.data.local.DbTransaction
 import com.patbaumgartner.android.spacedrepeater.data.local.SpacedRepeaterDatabase
+import com.patbaumgartner.android.spacedrepeater.data.local.SyncDbTransaction
 import com.patbaumgartner.android.spacedrepeater.data.local.card.CardDao
 import com.patbaumgartner.android.spacedrepeater.data.local.card.CardStateDao
 import com.patbaumgartner.android.spacedrepeater.data.local.card.ReviewLogDao
@@ -30,6 +31,8 @@ class CardRepository(
     private val cardStateDao: CardStateDao,
     private val reviewLogDao: ReviewLogDao,
     private val scheduler: SM2Scheduler,
+    /** Defaults to [SyncDbTransaction] for tests; production injects [roomDbTransaction]. */
+    private val dbTransaction: DbTransaction = SyncDbTransaction,
 ) {
     fun observeDeckCards(deckId: Long): Flow<List<Card>> =
         cardDao.observeDeckCards(deckId).map { it.map(CardEntity::toDomain) }
@@ -39,7 +42,7 @@ class CardRepository(
 
     /** Inserts [cards] together with a fresh NEW schedule bound to each generated card id. */
     suspend fun insertCards(cards: List<CardEntity>, dueDate: Long) {
-        db.withTransaction {
+        dbTransaction.run {
             val ids = cardDao.insertAll(cards)
             cardStateDao.insertAll(ids.map { CardStateEntity(cardId = it, dueDate = dueDate) })
         }
@@ -67,7 +70,7 @@ class CardRepository(
             phase = schedule.nextPhase.name,
         )
         var logId = 0L
-        db.withTransaction {
+        dbTransaction.run {
             cardStateDao.upsert(newState)
             logId = reviewLogDao.insert(
                 ReviewLogEntity(
@@ -85,7 +88,7 @@ class CardRepository(
 
     /** Reverts the most recent rating: restores the snapshot and deletes the review-log entry. */
     suspend fun undo(cardId: Long, previousState: CardStateEntity?, logId: Long) {
-        db.withTransaction {
+        dbTransaction.run {
             if (previousState != null) {
                 cardStateDao.upsert(previousState)
             } else {

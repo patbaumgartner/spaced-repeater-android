@@ -15,7 +15,7 @@ enum class CardPhase {
     NEW,
     LEARNING,
     REVIEW,
-    RELARNING,
+    RELEARNING,
 }
 
 data class CardState(

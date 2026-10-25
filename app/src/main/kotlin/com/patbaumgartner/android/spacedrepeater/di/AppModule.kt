@@ -7,7 +7,9 @@ import androidx.room.Room
 import com.patbaumgartner.android.spacedrepeater.data.importing.DeckImporter
 import com.patbaumgartner.android.spacedrepeater.data.importing.DeckMediaStore
 import com.patbaumgartner.android.spacedrepeater.data.importing.MarkdownParser
+import com.patbaumgartner.android.spacedrepeater.data.local.DbTransaction
 import com.patbaumgartner.android.spacedrepeater.data.local.SpacedRepeaterDatabase
+import com.patbaumgartner.android.spacedrepeater.data.local.roomDbTransaction
 import com.patbaumgartner.android.spacedrepeater.data.repository.CardRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.DeckRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.StatsRepository
@@ -27,7 +29,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SpacedRepeaterDatabase =
         Room.databaseBuilder(context, SpacedRepeaterDatabase::class.java, "spaced_repeater.db")
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
     @Provides
@@ -66,7 +68,12 @@ object AppModule {
         stateDao: com.patbaumgartner.android.spacedrepeater.data.local.card.CardStateDao,
         logDao: com.patbaumgartner.android.spacedrepeater.data.local.card.ReviewLogDao,
         scheduler: SM2Scheduler,
-    ): CardRepository = CardRepository(db, cardDao, stateDao, logDao, scheduler)
+        dbTransaction: DbTransaction,
+    ): CardRepository = CardRepository(db, cardDao, stateDao, logDao, scheduler, dbTransaction)
+
+    @Provides
+    @Singleton
+    fun provideDbTransaction(db: SpacedRepeaterDatabase): DbTransaction = roomDbTransaction(db)
 
     @Provides
     @Singleton

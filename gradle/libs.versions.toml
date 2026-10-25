@@ -10,7 +10,10 @@ okhttp = "5.5.0"
 serialization = "1.11.0"
 coroutines = "1.11.0"
 junit = "4.13.2"
+mockk = "1.14.7"
+coroutinesTest = "1.11.0"
 room = "2.8.5"
+roomTesting = "2.8.5"
 hilt = "2.60.1"
 hiltWork = "1.4.0"
 work = "2.12.0"
@@ -42,6 +45,9 @@ room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 junit = { module = "junit:junit", version.ref = "junit" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
