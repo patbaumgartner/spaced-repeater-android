@@ -44,6 +44,10 @@ standard markdown:
 
 ## Screenshot catalogue
 
+All captures were taken from a 1080×1920 @420dpi API 35 emulator running the
+debug build of this repository, with the bundled `sample.zip` deck imported
+(70-card "Gesichter und Namen" deck).
+
 | File | Screen | Notes |
 |------|--------|-------|
 | `01_home.png` | Home — deck list | Shows FAB, due badge, progress |
@@ -58,6 +62,13 @@ standard markdown:
 - Always re-run the screenshot test after UI changes and update the files.
 - Commit the updated PNG files alongside the code change.
 - Tap coordinates in `ScreenshotsTest` are tuned for a 1080×2280 Pixel-5
-  display. Adjust `input tap X Y` values for other resolutions.
+  display; the committed captures were taken on a 1080×1920 @420dpi emulator.
+  Adjust `input tap X Y` values for other resolutions.
 - Screenshots include the status bar and nav bar to reflect the real learner
   experience.
+- On hosts without KVM (for example WSL 2 without nested virtualization), the
+  emulator needs `-accel off` (TCG). Android's Watchdog then kills
+  `system_server` mid-boot; setting
+  `adb shell setprop ro.hw_timeout_multiplier 20` before `system_server`
+  starts (then `setprop ctl.restart zygote`) works around it. Boot takes
+  roughly 10 minutes and app first frames several minutes more.
