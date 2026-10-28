@@ -66,6 +66,7 @@ class StudyViewModel @Inject constructor(
     private val deckRepository: DeckRepository,
     private val reminderService: ReviewReminderService,
     private val studyLimitsRepository: StudyLimitsRepository,
+    private val appPreferencesRepository: com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferencesRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StudyUiState())
@@ -124,6 +125,11 @@ class StudyViewModel @Inject constructor(
 
     private fun scheduleReminder() {
         viewModelScope.launch {
+            if (!appPreferencesRepository.remindersEnabled()) {
+                // Learner opted out of reminders; cancel any pending worker.
+                reminderService.cancel()
+                return@launch
+            }
             val nextDue = cardRepository.nextDueAfter(now = System.currentTimeMillis())
             // Always schedule the worker — it will re-check due count and permission at execution time.
             // This handles the case where a session exhausts all due cards but future cards become due later.

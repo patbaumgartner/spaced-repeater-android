@@ -42,6 +42,11 @@ class ReviewReminderService(
             request,
         )
     }
+
+    /** Cancels any pending reminder; used when the learner disables reminders. */
+    fun cancel() {
+        workManager.cancelUniqueWork("review-reminder")
+    }
 }
 
 @HiltWorker

@@ -12,6 +12,7 @@ import com.patbaumgartner.android.spacedrepeater.data.local.SpacedRepeaterDataba
 import com.patbaumgartner.android.spacedrepeater.data.local.roomDbTransaction
 import com.patbaumgartner.android.spacedrepeater.data.repository.CardRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.DeckRepository
+import com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferencesRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.StatsRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.StudyLimitsRepository
 import com.patbaumgartner.android.spacedrepeater.data.scheduler.SM2Scheduler
@@ -88,6 +89,12 @@ object AppModule {
         @ApplicationContext context: Context,
         logDao: com.patbaumgartner.android.spacedrepeater.data.local.card.ReviewLogDao,
     ): StudyLimitsRepository = StudyLimitsRepository(context, logDao)
+
+    @Provides
+    @Singleton
+    fun provideAppPreferencesRepository(
+        @ApplicationContext context: Context,
+    ): AppPreferencesRepository = AppPreferencesRepository(context)
 
     @Provides
     @Singleton

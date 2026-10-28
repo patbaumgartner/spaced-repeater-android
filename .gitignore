@@ -44,3 +44,7 @@ Thumbs.db
 *.swp
 *~
 sample/
+# Unlazy ledgers and state
+GATES.md
+.unlazy/
+
