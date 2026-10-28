@@ -8,6 +8,7 @@ Core capabilities:
 
 - **Deck import** — load `.zip` packages containing `deck.json`, markdown cards, and media files.
 - **Study sessions** — question → reveal → rate (Again / Hard / Good / Easy) loop.
+- **Daily new-card limit** — caps first-time card introductions per day (default 20, 0 = unlimited).
 - **SM-2 scheduling** — per-card intervals, ease factors, learning/review/relearning phases.
 - **Progress visibility** — due counts, studied/total progress, streak and retention stats.
 - **Review reminders** — optional notifications derived from real due dates.

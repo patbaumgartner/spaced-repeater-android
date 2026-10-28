@@ -128,6 +128,38 @@ class CardRepositoryTest {
         assertEquals(1, logSlot.captured.rating)
     }
 
+    @Test
+    fun `rate records the pre-review phase for new-card budget tracking`() = runBlocking {
+        val cardId = 7L
+        coEvery { stateDao.getById(cardId) } returns CardStateEntity(
+            cardId = cardId, dueDate = 0L, phase = CardPhase.NEW.name,
+        )
+        val logSlot = slot<com.patbaumgartner.android.spacedrepeater.data.local.model.ReviewLogEntity>()
+        coEvery { logDao.insert(capture(logSlot)) } returns 1L
+
+        repo.rate(cardId, ReviewRating.GOOD)
+
+        assertEquals(CardPhase.NEW.name, logSlot.captured.previousPhase)
+    }
+
+    @Test
+    fun `rate records REVIEW as pre-review phase for due review cards`() = runBlocking {
+        val cardId = 8L
+        coEvery { stateDao.getById(cardId) } returns CardStateEntity(
+            cardId = cardId,
+            dueDate = System.currentTimeMillis(),
+            phase = CardPhase.REVIEW.name,
+            interval = 10,
+            repetitions = 3,
+        )
+        val logSlot = slot<com.patbaumgartner.android.spacedrepeater.data.local.model.ReviewLogEntity>()
+        coEvery { logDao.insert(capture(logSlot)) } returns 1L
+
+        repo.rate(cardId, ReviewRating.GOOD)
+
+        assertEquals(CardPhase.REVIEW.name, logSlot.captured.previousPhase)
+    }
+
     // ─── UC-05: Undo Review ────────────────────────────────────────────────────
 
     @Test
