@@ -14,7 +14,7 @@ import java.io.IOException
  * Screenshot instrumented test for docs / README.
  *
  * Each test method navigates to one screen and captures a PNG via
- * `adb shell screencap`. Screenshots land at:
+ * UiDevice.takeScreenshot (uiautomator). Screenshots land at:
  *   /sdcard/Android/data/com.patbaumgartner.android.spacedrepeater/files/Pictures/SpacedRepeater/
  * (the app's external files dir — writable without storage permissions)
  *
@@ -60,15 +60,15 @@ class ScreenshotsTest {
 
     /**
      * Captures the current screen to [fileName] inside [outDir].
-     * Uses `screencap` via Runtime so no app permissions are required.
+     *
+     * Uses [UiDevice.takeScreenshot] — the instrumentation shell context is
+     * allowed to capture the display, while the plain `screencap` binary is
+     * not reachable from an app process on enforced (user) builds.
      */
     private fun capture(fileName: String) {
         val output = File(outDir, fileName)
-        val process = Runtime.getRuntime().exec(arrayOf("screencap", "-p", output.absolutePath))
-        val exitCode = try { process.waitFor() } catch (e: InterruptedException) {
-            throw RuntimeException(e)
-        }
-        assertTrue("screencap failed for $fileName (exit $exitCode)", exitCode == 0)
+        val success = device.takeScreenshot(output, 1.0f, 100)
+        assertTrue("screenshot failed for $fileName", success)
         assertTrue("screenshot not created: ${output.absolutePath}", output.exists())
     }
 
