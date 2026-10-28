@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,11 +40,15 @@ object Routes {
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @javax.inject.Inject
+    lateinit var appPreferencesRepository: com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferencesRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        val darkThemePreference = appPreferencesRepository.darkTheme()
         setContent {
-            SpacedRepeaterTheme {
+            SpacedRepeaterTheme(darkTheme = darkThemePreference ?: isSystemInDarkTheme()) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val context = LocalContext.current
                     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -73,6 +78,7 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(
                                 onBack = { navController.popBackStack() },
                                 onLicenses = { navController.popBackStack() },
+                                viewModel = hiltViewModel(),
                             )
                         }
                         composable(Routes.IMPORT) {
