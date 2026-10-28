@@ -17,7 +17,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
-SRC="/sdcard/Pictures/SpacedRepeater"
+SRC="/sdcard/Android/data/com.patbaumgartner.android.spacedrepeater/files/Pictures/SpacedRepeater"
 DEST="$(cd "$(dirname "$0")/.." && pwd)/docs/screenshots"
 
 mkdir -p "$DEST"
