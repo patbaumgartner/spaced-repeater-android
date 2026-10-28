@@ -9,6 +9,7 @@
 | R3 | Markdown rendering inconsistency (some markdown not supported) | Medium | Low | Constrain the supported markdown subset and document it in the deck format spec. |
 | R4 | Reminder work lost after reboot on some OEMs | Low | Low | WorkManager persists across reboots; reminders are best-effort by design. |
 | R5 | Schema evolution breaks existing installs | Low | High | Room migrations mandatory for every schema change; export schema for review. |
+| R6 | Destructive migration wipes user data on app upgrade (v1→v2 added `review_log.previousPhase`) | Low | Medium — seeded decks must be re-imported | Acceptable pre-release; introduce real `Migration` objects before any public release. |
 
 ## Known Technical Debt
 

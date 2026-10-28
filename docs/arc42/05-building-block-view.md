@@ -146,6 +146,7 @@ erDiagram
         int interval
         float ease_factor
         long time_taken_ms
+        string previous_phase
     }
 ```
 

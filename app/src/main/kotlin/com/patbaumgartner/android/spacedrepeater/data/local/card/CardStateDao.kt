@@ -13,6 +13,15 @@ interface CardStateDao {
     @Query("SELECT * FROM card_states WHERE cardId = :cardId")
     suspend fun getById(cardId: Long): CardStateEntity?
 
+    @Query(
+        """
+        SELECT card_states.* FROM card_states
+        INNER JOIN cards ON cards.id = card_states.cardId
+        WHERE cards.deckId = :deckId
+        """,
+    )
+    suspend fun getByDeckId(deckId: Long): List<CardStateEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(state: CardStateEntity)
 

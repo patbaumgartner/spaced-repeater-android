@@ -31,4 +31,21 @@ interface ReviewLogDao {
 
     @Query("SELECT reviewedAt FROM review_log")
     suspend fun allReviewedAt(): List<Long>
+
+    /**
+     * Number of distinct cards introduced today, i.e. cards whose first review
+     * happened inside the [startOfToday, startOfTomorrow) window. Counts each
+     * card once regardless of how many NEW-phase reviews it received that day
+     * (a 1-minute learning step must not consume the budget twice).
+     */
+    @Query(
+        """
+        SELECT COUNT(*) FROM (
+            SELECT DISTINCT cardId FROM review_log
+            WHERE reviewedAt >= :startOfToday AND reviewedAt < :startOfTomorrow
+              AND previousPhase = 'NEW'
+        )
+        """,
+    )
+    suspend fun countNewIntroducedToday(startOfToday: Long, startOfTomorrow: Long): Int
 }

@@ -30,6 +30,10 @@
         <item quantity="one">%1$d left</item>
         <item quantity="other">%1$d left</item>
     </plurals>
+    <plurals name="study_new_limit_info">
+        <item quantity="one">%1$d new card held back until tomorrow (daily limit)</item>
+        <item quantity="other">%1$d new cards held back until tomorrow (daily limit)</item>
+    </plurals>
 
     <string name="import_title">Import deck</string>
     <string name="import_pick">Choose a .zip deck package</string>

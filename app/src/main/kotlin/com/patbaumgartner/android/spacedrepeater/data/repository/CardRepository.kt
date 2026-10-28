@@ -12,6 +12,7 @@ import com.patbaumgartner.android.spacedrepeater.data.local.model.ReviewLogEntit
 import com.patbaumgartner.android.spacedrepeater.data.local.model.toDomain
 import com.patbaumgartner.android.spacedrepeater.data.scheduler.SM2Scheduler
 import com.patbaumgartner.android.spacedrepeater.domain.model.Card
+import com.patbaumgartner.android.spacedrepeater.domain.model.CardPhase
 import com.patbaumgartner.android.spacedrepeater.domain.model.CardState
 import com.patbaumgartner.android.spacedrepeater.domain.model.ReviewRating
 import kotlinx.coroutines.flow.Flow
@@ -50,6 +51,10 @@ class CardRepository(
 
     suspend fun stateFor(cardId: Long): CardState? = cardStateDao.getById(cardId)?.toDomain()
 
+    /** Phases of every card in the deck, keyed by card id. Used for the daily new-card limit. */
+    suspend fun phasesForDeck(deckId: Long): Map<Long, CardPhase> =
+        cardStateDao.getByDeckId(deckId).associate { it.cardId to CardPhase.valueOf(it.phase) }
+
     suspend fun rate(cardId: Long, rating: ReviewRating, timeTakenMs: Long = 0L): ReviewResult {
         val previous = cardStateDao.getById(cardId)
         val state = previous?.toDomain() ?: CardState(cardId = cardId)
@@ -80,6 +85,7 @@ class CardRepository(
                     interval = schedule.interval,
                     easeFactor = schedule.easeFactor,
                     timeTakenMs = timeTakenMs,
+                    previousPhase = state.phase.name,
                 ),
             )
         }
