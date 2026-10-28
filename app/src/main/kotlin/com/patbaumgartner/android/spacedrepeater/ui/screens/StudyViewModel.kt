@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.patbaumgartner.android.spacedrepeater.data.repository.CardRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.DeckRepository
+import com.patbaumgartner.android.spacedrepeater.data.repository.StudyLimitsRepository
 import com.patbaumgartner.android.spacedrepeater.data.scheduler.SM2Scheduler
 import com.patbaumgartner.android.spacedrepeater.domain.model.Card
+import com.patbaumgartner.android.spacedrepeater.domain.model.CardPhase
 import com.patbaumgartner.android.spacedrepeater.domain.model.CardState
 import com.patbaumgartner.android.spacedrepeater.domain.model.ReviewRating
 import com.patbaumgartner.android.spacedrepeater.service.ReviewReminderService
@@ -23,15 +25,37 @@ data class StudyUiState(
     val index: Int = 0,
     val answered: Boolean = false,
     val done: Boolean = false,
+    /** Due NEW cards held back by the daily limit; they become available tomorrow. */
+    val newCardsHeldBack: Int = 0,
 ) {
     val current: Card? get() = cards.getOrNull(index)
     val total: Int get() = cards.size
     val remaining: Int get() = (total - index).coerceAtLeast(0)
 }
 
+/**
+ * Applies the daily new-card limit (UC-08) to a due-card list. Pure function.
+ *
+ * Cards currently in the NEW phase are first-time introductions: only
+ * [newRemaining] of them are allowed into the session (Anki semantics).
+ * Learning/review/relearning cards are never capped. The DAO's due ordering
+ * (learning/relearning first, then by due date) is preserved.
+ */
+internal fun applyNewCardLimit(
+    due: List<Card>,
+    phases: Map<Long, CardPhase>,
+    newRemaining: Int,
+): StudyUiState {
+    val (newCards, otherCards) = due.partition { phases[it.id] == CardPhase.NEW }
+    val allowedNew = if (newRemaining == Int.MAX_VALUE) newCards else newCards.take(newRemaining)
+    return StudyUiState(
+        cards = otherCards + allowedNew,
+        newCardsHeldBack = (newCards.size - allowedNew.size).coerceAtLeast(0),
+    )
+}
+
 /** Single-level undo history: what was rated and the snapshot needed to revert it. */
-private data class RatedReview(
-    val cardId: Long,
+private data class RatedReview(    val cardId: Long,
     val logId: Long,
     val previousState: com.patbaumgartner.android.spacedrepeater.data.local.model.CardStateEntity?,
 )
@@ -41,6 +65,7 @@ class StudyViewModel @Inject constructor(
     private val cardRepository: CardRepository,
     private val deckRepository: DeckRepository,
     private val reminderService: ReviewReminderService,
+    private val studyLimitsRepository: StudyLimitsRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StudyUiState())
@@ -53,8 +78,11 @@ class StudyViewModel @Inject constructor(
         lastReview = null
         viewModelScope.launch {
             deckRepository.markStudied(deckId)
-            val cards = cardRepository.observeDueCards(deckId).first()
-            _uiState.value = StudyUiState(deckId = deckId, cards = cards)
+            val due = cardRepository.observeDueCards(deckId).first()
+            val newRemaining = studyLimitsRepository.newRemainingToday()
+            val phases = cardRepository.phasesForDeck(deckId)
+            _uiState.value = applyNewCardLimit(due, phases, newRemaining)
+                .copy(deckId = deckId)
         }
     }
 

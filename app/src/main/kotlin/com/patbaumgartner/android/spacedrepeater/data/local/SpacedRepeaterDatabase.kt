@@ -19,7 +19,7 @@ import com.patbaumgartner.android.spacedrepeater.data.local.model.ReviewLogEntit
         CardStateEntity::class,
         ReviewLogEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class SpacedRepeaterDatabase : RoomDatabase() {

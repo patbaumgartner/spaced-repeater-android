@@ -49,6 +49,7 @@ sequenceDiagram
     SS->>SVM: startSession(deckId)
     SVM->>Repo: dueCards(deckId, now)
     Repo-->>SVM: Flow<List<Card>>
+    SVM->>SVM: applyNewCardLimit (UC-08: cap NEW cards)
     SVM-->>SS: Show question (front)
 
     L->>SS: Tap card

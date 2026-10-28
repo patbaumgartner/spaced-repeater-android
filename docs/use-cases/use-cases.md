@@ -25,6 +25,7 @@ flowchart LR
         UC5([UC-05 Undo Review])
         UC6([UC-06 View Progress])
         UC7([UC-07 Receive Reminder])
+        UC8([UC-08 Daily New-Card Limit])
     end
 
     Learner --> UC1
@@ -33,6 +34,7 @@ flowchart LR
     Learner --> UC6
     UC3 --> UC4
     UC3 --> UC5
+    UC8 -.->|limits new cards| UC3
     UC7 -.->|notifies| Learner
 ```
 
@@ -47,6 +49,7 @@ flowchart LR
 | [UC-05](#uc-05-undo-review) | Undo Review | Learner | Medium |
 | [UC-06](#uc-06-view-progress) | View Progress | Learner | Medium |
 | [UC-07](#uc-07-receive-review-reminder) | Receive Review Reminder | Learner | Medium |
+| [UC-08](#uc-08-daily-new-card-limit) | Daily New-Card Limit | Learner | Medium |
 
 ---
 
@@ -144,6 +147,8 @@ A learner works through the due cards of a deck in a focused review session.
 - **1a. No cards are due:** System shows "All caught up" and returns to the Home Screen.
 - **5a. Learner taps undo:** Trigger [UC-05](#uc-05-undo-review).
 - **7a. Learner exits early:** System persists the session state; progress for rated cards is kept.
+- **7b. Daily new-card limit reached:** Only the configured number of NEW cards
+  enters the session; see [UC-08](#uc-08-daily-new-card-limit).
 
 ```mermaid
 stateDiagram-v2
@@ -249,3 +254,36 @@ A learner is notified when cards are due, re-engaging the study habit.
 
 - Reminders are derived from real due dates, not fixed intervals.
 - The feature is fully optional and disabled until the learner grants `POST_NOTIFICATIONS`.
+
+---
+
+## UC-08 Daily New-Card Limit
+
+**Actor:** Learner
+
+The app caps how many previously-unseen (NEW) cards are introduced per calendar
+day, matching Anki's daily new-card limit. This prevents review backlog from
+growing when a deck contains many new cards.
+
+### Main Success Scenario
+
+1. Learner starts a study session (UC-03).
+2. The system counts how many distinct cards were first introduced today.
+3. The system allows only the configured daily limit of NEW cards into the
+   session; all due learning/review/relearning cards are always included.
+4. Held-back NEW cards remain due and become available the next calendar day.
+
+### Extensions
+
+- **2a. Limit reached:** No NEW cards enter the session; the Study screen shows
+  how many cards were held back until tomorrow.
+- **2b. Limit set to 0:** Treated as unlimited; every due card is included.
+
+### Business Rules
+
+- Only cards in phase NEW at review time consume the daily budget; a card
+  counts exactly once per day (its first-ever review), even if it receives
+  several learning-step reviews that day.
+- Default limit: 20 new cards per day; persisted across app restarts.
+- Learning, review, and relearning cards are never capped by this limit.
+- The day boundary follows the device's local time zone.

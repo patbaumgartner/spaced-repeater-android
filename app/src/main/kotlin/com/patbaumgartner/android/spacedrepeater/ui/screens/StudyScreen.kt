@@ -64,6 +64,15 @@ internal fun StudyScreen(
                 Text(stringResource(R.string.study_undo))
             }
         }
+        if (s.newCardsHeldBack > 0) {
+            Text(
+                text = pluralStringResource(R.plurals.study_new_limit_info, s.newCardsHeldBack, s.newCardsHeldBack),
+                style = MaterialTheme.typography.labelMedium,
+                color = SpacedRepeaterTheme.accents.textMuted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         Spacer(Modifier.height(12.dp))
 
         when {
