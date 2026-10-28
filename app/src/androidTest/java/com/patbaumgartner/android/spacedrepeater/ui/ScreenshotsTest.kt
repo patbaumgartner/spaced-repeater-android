@@ -15,7 +15,8 @@ import java.io.IOException
  *
  * Each test method navigates to one screen and captures a PNG via
  * `adb shell screencap`. Screenshots land at:
- *   /sdcard/Pictures/SpacedRepeater/
+ *   /sdcard/Android/data/com.patbaumgartner.android.spacedrepeater/files/Pictures/SpacedRepeater/
+ * (the app's external files dir — writable without storage permissions)
  *
  * Run on a connected device or emulator:
  *
@@ -28,7 +29,7 @@ import java.io.IOException
  *     --tests "com.patbaumgartner.android.spacedrepeater.ui.ScreenshotsTest"
  *
  *   # Pull screenshots to the repo
- *   adb pull /sdcard/Pictures/SpacedRepeater/ docs/screenshots/
+ *   ./scripts/pull-screenshots.sh
  *
  * Or run a single screen in isolation:
  *   adb shell am instrument -w ... \
@@ -44,9 +45,15 @@ class ScreenshotsTest {
         UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
     }
 
+    /**
+     * The instrumentation app's own external files directory. Writable without
+     * any permission on all supported API levels (scoped-storage safe), unlike
+     * the shared Pictures directory.
+     */
     private val outDir: File by lazy {
         File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+            InstrumentationRegistry.getInstrumentation().targetContext
+                .getExternalFilesDir(Environment.DIRECTORY_PICTURES),
             "SpacedRepeater",
         ).also { it.mkdirs() }
     }
