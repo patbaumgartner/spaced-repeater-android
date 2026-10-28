@@ -14,7 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = Routes.HOME) {
                         composable(Routes.HOME) {
                             HomeScreen(
-                                viewModel = viewModel(),
+                                viewModel = hiltViewModel(),
                                 onOpenDeck = { id -> navController.navigate(Routes.study(id)) },
                                 onImport = { navController.navigate(Routes.IMPORT) },
                                 onStats = { navController.navigate(Routes.STATS) },
@@ -77,14 +77,14 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Routes.IMPORT) {
                             ImportScreen(
-                                viewModel = viewModel(),
+                                viewModel = hiltViewModel(),
                                 onBack = { navController.popBackStack() },
                                 onImported = { navController.popBackStack() },
                             )
                         }
                         composable(Routes.STATS) {
                             StatsScreen(
-                                viewModel = viewModel(),
+                                viewModel = hiltViewModel(),
                                 onBack = { navController.popBackStack() },
                             )
                         }
@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
                             val deckId = backStackEntry.arguments?.getString("deckId")?.toLongOrNull() ?: 0L
                             StudyScreen(
                                 deckId = deckId,
-                                viewModel = viewModel(),
+                                viewModel = hiltViewModel(),
                                 onExit = { navController.popBackStack() },
                             )
                         }
