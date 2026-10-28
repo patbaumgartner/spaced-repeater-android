@@ -278,6 +278,8 @@ growing when a deck contains many new cards.
 - **2a. Limit reached:** No NEW cards enter the session; the Study screen shows
   how many cards were held back until tomorrow.
 - **2b. Limit set to 0:** Treated as unlimited; every due card is included.
+- **2c. Limit changed in Settings:** The new value applies from the next study
+  session on; the current session keeps the cards it already loaded.
 
 ### Business Rules
 
@@ -287,3 +289,4 @@ growing when a deck contains many new cards.
 - Default limit: 20 new cards per day; persisted across app restarts.
 - Learning, review, and relearning cards are never capped by this limit.
 - The day boundary follows the device's local time zone.
+- The limit is adjustable on the Settings screen (stepper, 0 = unlimited).
