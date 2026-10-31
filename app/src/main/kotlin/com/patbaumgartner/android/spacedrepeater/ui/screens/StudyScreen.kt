@@ -99,7 +99,7 @@ private fun androidx.compose.foundation.layout.ColumnScope.FlashcardArea(
     onReveal: () -> Unit,
     onRate: (ReviewRating) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
             onClick = onReveal,
             shape = RoundedCornerShape(16.dp),
