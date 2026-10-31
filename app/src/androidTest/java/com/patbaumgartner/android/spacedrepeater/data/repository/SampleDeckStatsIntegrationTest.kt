@@ -49,13 +49,22 @@ class SampleDeckStatsIntegrationTest {
     private lateinit var statsRepository: StatsRepository
     private lateinit var importer: DeckImporter
 
-    /** Path to the sample deck maintained at ~/Dropbox/spaced-repeater-sample/. */
-    private val sampleZip = File(
+    /**
+     * Path to the sample deck maintained at ~/Dropbox/spaced-repeater-sample/.
+     * Checked in several locations: the WSL2 Dropbox mount, the plain Linux
+     * Dropbox path (useful with `adb push` + adbd root), and device-local
+     * paths for emulator runs (push the ZIP to one of these first).
+     */
+    private val sampleZip: File = sequenceOf(
         System.getenv("HOME")
-            .orEmpty()
-            .replace("/home/patbaumgartner", "/mnt/c/Users/patbaumgartner")
-            + "/Dropbox/spaced-repeater-sample/web-entwicklung-hs2026-gesichter-namen.zip",
-    )
+            ?.replace("/home/patbaumgartner", "/mnt/c/Users/patbaumgartner")
+            ?.let { "$it/Dropbox/spaced-repeater-sample/web-entwicklung-hs2026-gesichter-namen.zip" },
+        "/data/local/tmp/sample.zip",
+        "/sdcard/Download/web-entwicklung-hs2026-gesichter-namen.zip",
+    ).filterNotNull()
+        .map(::File)
+        .firstOrNull { it.isFile }
+        ?: File("/nonexistent/web-entwicklung-hs2026-gesichter-namen.zip")
 
     private val zone = ZoneId.of("UTC")
 
