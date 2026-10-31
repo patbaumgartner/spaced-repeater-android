@@ -17,6 +17,8 @@ data class ImportUiState(
     val importing: Boolean = false,
     val error: String? = null,
     val lastResult: ImportOutcome? = null,
+    /** SAF Uri of the picked archive; kept here so it survives configuration changes. */
+    val archiveUri: Uri? = null,
 )
 
 data class ImportPreview(
@@ -42,7 +44,7 @@ class ImportViewModel @Inject constructor(
 
     fun onArchiveSelected(contentResolver: ContentResolver, uri: Uri) {
         viewModelScope.launch {
-            _uiState.value = ImportUiState(importing = true, error = null)
+            _uiState.value = ImportUiState(importing = true, error = null, archiveUri = uri)
             try {
                 val manifest = contentResolver.openInputStream(uri)?.use { importer.readManifest(it) }
                     ?: throw Exception("Could not open archive")
@@ -53,14 +55,16 @@ class ImportViewModel @Inject constructor(
                         description = manifest.description,
                         tags = manifest.tags,
                     ),
+                    archiveUri = uri,
                 )
             } catch (e: Exception) {
-                _uiState.value = ImportUiState(error = e.message ?: "Import failed")
+                _uiState.value = ImportUiState(error = e.message ?: "Import failed", archiveUri = uri)
             }
         }
     }
 
-    fun confirmImport(contentResolver: ContentResolver, uri: Uri) {
+    fun confirmImport(contentResolver: ContentResolver) {
+        val uri = _uiState.value.archiveUri ?: return
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(importing = true, error = null)
             try {

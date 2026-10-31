@@ -38,10 +38,8 @@ internal fun ImportScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var pickedUri by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<android.net.Uri?>(null) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            pickedUri = uri
             viewModel.onArchiveSelected(context.contentResolver, uri)
         }
     }
@@ -63,6 +61,7 @@ internal fun ImportScreen(
                     Text(
                         pluralStringResource(
                             R.plurals.import_done_message,
+                            state.lastResult!!.imported,
                             state.lastResult!!.imported,
                             state.lastResult!!.skipped,
                         ),
@@ -122,10 +121,7 @@ internal fun ImportScreen(
                     )
                     Spacer(Modifier.height(24.dp))
                     Button(
-                        onClick = {
-                            val uri = pickedUri ?: return@Button
-                            viewModel.confirmImport(context.contentResolver, uri)
-                        },
+                        onClick = { viewModel.confirmImport(context.contentResolver) },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(R.string.import_confirm))

@@ -72,3 +72,9 @@ debug build of this repository, with the bundled `sample.zip` deck imported
   `adb shell setprop ro.hw_timeout_multiplier 20` before `system_server`
   starts (then `setprop ctl.restart zygote`) works around it. Boot takes
   roughly 10 minutes and app first frames several minutes more.
+- The same slowness affects instrumented UI tests locally: JIT verification
+  of Compose code can freeze the app for minutes and the window may not have
+  input focus when the first interactions run. Compose `waitUntil` timeouts in
+  the UI tests are therefore set to 60 s (not the 1–10 s defaults), and
+  `StudyScreenUiTest.setContentAndWait` additionally waits for window focus
+  before the first click. On CI (KVM) these waits return almost immediately.
