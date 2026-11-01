@@ -93,6 +93,8 @@ private val MEDIA_REFERENCE = Regex("""(!\[[^\]]*]\()\s*(?:\./)?media/([^)\s]+)\
 fun rewriteMediaReferences(markdown: String, mediaDir: File, available: Set<String>): String =
     MEDIA_REFERENCE.replace(markdown) { match ->
         val fileName = match.groupValues[2]
+        // `available` only contains allowlisted flat names from the archive, so
+        // the emitted path always resolves inside [mediaDir].
         if (fileName in available) {
             match.groupValues[1] + File(mediaDir, fileName).absolutePath + ")"
         } else {
