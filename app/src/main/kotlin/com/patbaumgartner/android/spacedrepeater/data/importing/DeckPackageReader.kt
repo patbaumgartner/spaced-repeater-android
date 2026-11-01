@@ -32,6 +32,10 @@ object DeckPackageReader {
         ZipInputStream(archive).use { zip ->
             var entry = zip.nextEntry
             while (entry != null) {
+                // Entry names are treated as labels only: media writes go through
+                // the SAFE_MEDIA_NAME allowlist plus a canonical-path containment
+                // check, and deck.json / cards/*.md entries are read into memory,
+                // never resolved against the file system.
                 val name = entry.name.removePrefix("./")
                 if (!entry.isDirectory) {
                     when {
