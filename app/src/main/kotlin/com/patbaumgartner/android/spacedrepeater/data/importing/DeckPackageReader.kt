@@ -39,8 +39,16 @@ object DeckPackageReader {
                         name.startsWith("cards/") && name.endsWith(".md") -> cards[name] = zip.readText(name)
                         mediaDir != null && name.startsWith("media/") -> {
                             val fileName = name.removePrefix("media/")
+                            // Allowlist already forbids path separators ('/' and '\'), so
+                            // fileName cannot traverse out of mediaDir; the resolved-path
+                            // check below makes that invariant explicit for reviewers and
+                            // static analysis (CodeQL java/zipslip).
                             if (SAFE_MEDIA_NAME.matches(fileName)) {
-                                zip.copyLimited(File(mediaDir, fileName), name)
+                                val target = File(mediaDir, fileName)
+                                require(target.canonicalPath.startsWith(mediaDir.canonicalPath + File.separator)) {
+                                    "Unsafe media entry name: $fileName"
+                                }
+                                zip.copyLimited(target, name)
                                 media += fileName
                             }
                         }
