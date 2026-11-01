@@ -49,8 +49,11 @@ object DeckPackageReader {
                             // static analysis (CodeQL java/zipslip).
                             if (SAFE_MEDIA_NAME.matches(fileName)) {
                                 val target = File(mediaDir, fileName)
-                                require(target.canonicalPath.startsWith(mediaDir.canonicalPath + File.separator)) {
-                                    "Unsafe media entry name: $fileName"
+                                // CodeQL's recognized zipslip guard form (see
+                                // java/zipslip recommendation): normalize the full
+                                // path and verify it is still inside mediaDir.
+                                if (!target.toPath().normalize().startsWith(mediaDir.toPath().normalize())) {
+                                    throw ImportException("Unsafe media entry name: $fileName")
                                 }
                                 zip.copyLimited(target, name)
                                 media += fileName
