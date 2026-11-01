@@ -39,6 +39,20 @@ class SM2SchedulerTest {
     }
 
     @Test
+    fun `second correct answer after graduation takes the 6 day step`() {
+        // ADR-0004: first correct -> 1 day, second -> 6 days, then previous x EF.
+        val schedule = scheduler.calculateNextReview(reviewState(1, 2.5f), ReviewRating.GOOD, now)
+        assertEquals(6, schedule.interval)
+        assertEquals(now.plus(Duration.ofDays(6)), schedule.dueAt)
+    }
+
+    @Test
+    fun `third correct answer multiplies the 6 day interval by ease factor`() {
+        val schedule = scheduler.calculateNextReview(reviewState(6, 2.5f), ReviewRating.GOOD, now)
+        assertEquals(15, schedule.interval)
+    }
+
+    @Test
     fun `learning Again stays in learning with 1 minute step`() {
         val schedule = scheduler.calculateNextReview(reviewState(0, 2.5f, CardPhase.LEARNING), ReviewRating.AGAIN, now)
         assertEquals(CardPhase.LEARNING, schedule.nextPhase)
