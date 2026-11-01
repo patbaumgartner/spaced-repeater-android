@@ -90,7 +90,9 @@ class SM2Scheduler {
             )
             ReviewRating.HARD -> {
                 val ef = (state.easeFactor - 0.15f).coerceAtLeast(easeFloor)
-                val interval = if (state.interval == 0) 6 else (state.interval * ef).roundToInt()
+                // interval 0 = never reviewed, 1 = just graduated; both take the
+                // 6-day first review-step interval (ADR-0004: 1 → 6 → × EF).
+                val interval = if (state.interval <= 1) 6 else (state.interval * ef).roundToInt()
                 CardSchedule(
                     interval = interval,
                     easeFactor = ef,
@@ -100,7 +102,7 @@ class SM2Scheduler {
             }
             ReviewRating.GOOD -> {
                 val ef = state.easeFactor.coerceAtLeast(easeFloor)
-                val interval = if (state.interval == 0) 6 else (state.interval * ef).roundToInt()
+                val interval = if (state.interval <= 1) 6 else (state.interval * ef).roundToInt()
                 CardSchedule(
                     interval = interval,
                     easeFactor = ef,
@@ -110,7 +112,7 @@ class SM2Scheduler {
             }
             ReviewRating.EASY -> {
                 val ef = (state.easeFactor + 0.15f).coerceAtLeast(easeFloor)
-                val base = if (state.interval == 0) 6 else (state.interval * ef).roundToInt()
+                val base = if (state.interval <= 1) 6 else (state.interval * ef).roundToInt()
                 val interval = (base * easyBonus).roundToInt()
                 CardSchedule(
                     interval = interval,
