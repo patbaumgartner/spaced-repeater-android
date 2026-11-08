@@ -3,9 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Required by WorkManager (2.12): its RescheduleReceiver listens for
+         BOOT_COMPLETED to re-enqueue pending work (the review reminder) after
+         a reboot; WorkManager runtime-enables that receiver when unfinished
+         work exists. The app declares no boot receiver of its own. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- The app is offline-only; okhttp (pulled in transitively) declares
-         INTERNET, so strip it from the merged manifest. -->
+    <!-- The app is offline-only: no network permission is declared. The
+         tools:node="remove" guard keeps any transitive dependency (e.g. a
+         future library pulling okhttp) from re-adding INTERNET. -->
     <uses-permission
         android:name="android.permission.INTERNET"
         tools:node="remove" />

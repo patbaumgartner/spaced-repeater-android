@@ -73,7 +73,6 @@
     <string name="settings_version">Version</string>
     <string name="settings_commit">Commit</string>
     <string name="settings_about">About</string>
-    <string name="settings_open_source_licenses">Open-source licenses</string>
     <string name="settings_study_section">Study</string>
     <string name="settings_new_per_day">New cards per day</string>
     <string name="settings_new_per_day_unlimited">Unlimited</string>

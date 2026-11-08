@@ -45,6 +45,6 @@ flowchart LR
 | Permission | Purpose | Scope |
 |------------|---------|-------|
 | `POST_NOTIFICATIONS` (runtime, API 33+) | Review reminders | Optional; app fully functional without it. |
-| `READ_EXTERNAL_STORAGE` (max SDK 32) | SAF fallback on old devices | Optional. |
-| `INTERNET` | Reserved for future sync | No network usage. |
-| `FOREGROUND_SERVICE` | Reserved for optional background work | Not used in the current release. |
+| `RECEIVE_BOOT_COMPLETED` | Required by WorkManager's `RescheduleReceiver`: re-enqueues pending work (the review reminder) after a reboot | Declared in the app manifest; WorkManager runtime-enables its receiver only while unfinished work exists. |
+| `WAKE_LOCK`, `ACCESS_NETWORK_STATE`, `FOREGROUND_SERVICE` | Declared by the WorkManager library (transitive) | Not granted-claiming features of the app itself. |
+| `INTERNET` | Not declared; stripped via `tools:node="remove"` so no transitive dependency can re-add it | No network usage. |
