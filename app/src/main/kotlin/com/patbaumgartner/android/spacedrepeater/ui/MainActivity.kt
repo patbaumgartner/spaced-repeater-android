@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -46,8 +48,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        val darkThemePreference = appPreferencesRepository.darkTheme()
         setContent {
+            // React to theme changes immediately: the flow re-emits when the
+            // learner toggles dark mode in Settings (null = follow system).
+            val darkThemePreference by appPreferencesRepository.darkThemeFlow()
+                .collectAsStateWithLifecycle(initialValue = appPreferencesRepository.darkTheme())
             SpacedRepeaterTheme(darkTheme = darkThemePreference ?: isSystemInDarkTheme()) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val context = LocalContext.current
@@ -77,7 +82,6 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.SETTINGS) {
                             SettingsScreen(
                                 onBack = { navController.popBackStack() },
-                                onLicenses = { navController.popBackStack() },
                                 viewModel = hiltViewModel(),
                             )
                         }

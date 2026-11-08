@@ -33,7 +33,6 @@ import com.patbaumgartner.android.spacedrepeater.ui.theme.SpacedRepeaterTheme
 @Composable
 internal fun SettingsScreen(
     onBack: () -> Unit,
-    onLicenses: () -> Unit,
     viewModel: SettingsViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,17 +76,6 @@ internal fun SettingsScreen(
             InfoRow(stringResource(R.string.settings_version), BuildConfig.VERSION_NAME)
             HorizontalDivider()
             InfoRow(stringResource(R.string.settings_commit), BuildConfig.GIT_COMMIT_HASH)
-            HorizontalDivider()
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.settings_open_source_licenses),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f),
-                )
-            }
         }
     }
 }
