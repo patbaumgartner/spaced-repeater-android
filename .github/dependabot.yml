@@ -1,33 +1,36 @@
+---
 version: 2
 updates:
-- package-ecosystem: gradle
-  directory: /
-  schedule:
-    interval: weekly
-    day: monday
-    time: 06:00
-    timezone: Europe/Zurich
-  open-pull-requests-limit: 5
-  groups:
-    androidx:
-      patterns:
-      - androidx.*
-    kotlin:
-      patterns:
-      - org.jetbrains.kotlin*
-- package-ecosystem: github-actions
-  directory: /
-  schedule:
-    interval: weekly
-    day: monday
-    time: 06:15
-    timezone: Europe/Zurich
-  open-pull-requests-limit: 5
-  groups:
-    github-actions:
-      patterns:
-      - '*'
-    multi-step-actions:
-      patterns:
-      - github/codeql-action/*
-      - gradle/actions/*
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Europe/Zurich
+    open-pull-requests-limit: 5
+    groups:
+      androidx:
+        patterns: ['androidx.*']
+      kotlin:
+        patterns: ['org.jetbrains.kotlin*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:15'
+      timezone: Europe/Zurich
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns: ['*']
+      # Dependabot treats each action in a multi-step action (e.g.
+      # github/codeql-action/init + analyze) as a separate dependency;
+      # a plain '*' group updates them independently and can push
+      # split-version commits that break the pinned-SHA contract.
+      multi-step-actions:
+        patterns:
+          - 'github/codeql-action/*'
+          - 'gradle/actions/*'
