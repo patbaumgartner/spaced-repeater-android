@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 /** User-adjustable app preferences: theme, reminders, and the daily new-card limit. */
 data class AppPreferences(
@@ -30,6 +33,26 @@ class AppPreferencesRepository @Inject constructor(
             VALUE_TRUE -> true
             VALUE_FALSE -> false
             else -> null
+        }
+
+    /**
+     * Emits the dark-theme preference whenever it changes, so the UI can react
+     * without an activity restart. Replays the current value on collection.
+     */
+    fun darkThemeFlow(): Flow<Boolean?> =
+        callbackFlow {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { sp, key ->
+                if (key == KEY_DARK_THEME) {
+                    when (sp.getString(KEY_DARK_THEME, null)) {
+                        VALUE_TRUE -> trySend(true)
+                        VALUE_FALSE -> trySend(false)
+                        else -> trySend(null)
+                    }
+                }
+            }
+            prefs.registerOnSharedPreferenceChangeListener(listener)
+            trySend(darkTheme())
+            awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
         }
 
     fun updateDarkTheme(value: Boolean?) {

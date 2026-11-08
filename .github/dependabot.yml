@@ -32,5 +32,6 @@ updates:
       # split-version commits that break the pinned-SHA contract.
       multi-step-actions:
         patterns:
+          - 'actions/cache/*'
           - 'github/codeql-action/*'
           - 'gradle/actions/*'

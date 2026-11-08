@@ -45,4 +45,4 @@ flowchart LR
 - **NotificationManager / WorkManager** — reminder scheduling and delivery.
 - **File system (app-private)** — extracted media images.
 
-The declared `INTERNET` permission exists only to keep the door open for future sync; the app performs no network I/O.
+No network permission is declared: the app performs no network I/O, and the manifest strips any transitive `INTERNET` request via `tools:node="remove"`.
