@@ -4,7 +4,10 @@ import android.os.Environment
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.BySelector
 import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.Until
 import com.patbaumgartner.android.spacedrepeater.data.local.SpacedRepeaterDatabase
 import com.patbaumgartner.android.spacedrepeater.data.local.card.CardDao
 import com.patbaumgartner.android.spacedrepeater.data.local.card.CardStateDao
@@ -70,8 +73,9 @@ class ScreenshotsTest {
         ).also { it.mkdirs() }
     }
 
-    /** Seeds a synthetic deck (no private data) directly into the app database
-     * so every screen has content to render. Runs before each test. */
+    /** Resets the database, seeds a synthetic deck (no private data), and
+     * launches the app so every screen has content to render. Runs before
+     * each test. */
     @Before
     fun seedSyntheticDeck() = runBlocking<Unit> {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
@@ -81,6 +85,7 @@ class ScreenshotsTest {
             "spaced_repeater.db",
         ).build()
         try {
+            db.clearAllTables()
             val deckDao = db.deckDao()
             val cardDao = db.cardDao()
             val stateDao = db.cardStateDao()
@@ -110,6 +115,17 @@ class ScreenshotsTest {
         } finally {
             db.close()
         }
+        launchApp()
+    }
+
+    /** Launches MainActivity explicitly — running via `am instrument` alone does
+     * not bring any activity to the foreground. Waits generously: on TCG
+     * emulators (no KVM) the first frames take minutes. */
+    private fun launchApp() {
+        device.executeShellCommand(
+            "am start -W -n com.patbaumgartner.android.spacedrepeater/.ui.MainActivity",
+        )
+        device.waitForIdle(30_000)
     }
 
     /**
@@ -131,54 +147,59 @@ class ScreenshotsTest {
     //   adb shell am instrument -w .../androidx.test.runner.AndroidJUnitRunner \
     //     -e class ...#methodName
     //
-    // Tap coordinates are approximate for a 1080×2280 Pixel-5 display.
-    // Adjust if your emulator or device has a different resolution.
+    // Navigation uses UiSelector (text / content-description) so it works on
+    // any display resolution. Waits are generous because TCG emulators
+    // (no KVM) render slowly.
     // ------------------------------------------------------------------
+
+    /** Taps the first visible node matching [selector], waiting up to [timeoutMs]. */
+    private fun tap(selector: BySelector, timeoutMs: Long = 60_000) {
+        val obj = device.wait(Until.findObject(selector), timeoutMs)
+            ?: error("no node matched $selector within ${timeoutMs}ms")
+        obj.click()
+        device.waitForIdle(5_000)
+    }
 
     @Test
     fun homeScreen() {
         // Home is the launcher destination — the activity opens here.
-        device.waitForIdle(2_000)
+        device.waitForIdle(10_000)
         capture("01_home.png")
     }
 
     @Test
     fun importScreen() {
-        // Navigate: Home → Import FAB (bottom-right, ~1050×1810 at 1080×2280).
-        device.executeShellCommand("input tap 1050 1810")
-        device.waitForIdle(1_500)
+        // Navigate: Home → Import FAB (content description "Import deck").
+        tap(By.desc("Import deck"))
         capture("02_import.png")
     }
 
     @Test
     fun statsScreen() {
-        // Navigate: Home → stats icon (top-right of app bar, ~980×140).
-        device.executeShellCommand("input tap 980 140")
-        device.waitForIdle(1_500)
+        // Navigate: Home → stats icon (content description "Progress").
+        tap(By.desc("Progress"))
         capture("04_stats.png")
     }
 
     @Test
     fun settingsScreen() {
-        // Navigate: Home → settings icon (top-right, left of stats, ~890×140).
-        device.executeShellCommand("input tap 890 140")
-        device.waitForIdle(1_500)
+        // Navigate: Home → settings icon (content description "Settings").
+        tap(By.desc("Settings"))
         capture("05_settings.png")
     }
 
     @Test
     fun studyScreen() {
-        // Navigate: Home → first deck card (centre-x, ~y=300 to clear header).
-        device.executeShellCommand("input tap 540 300")
-        device.waitForIdle(2_000)
+        // Navigate: Home → first deck card (the seeded synthetic deck).
+        tap(By.text("Fixture Deck (Synthetic)"))
         capture("03_study.png")
     }
 
     @Test
     fun studySession_answerRevealed() {
-        // From study screen, tap the card to reveal the answer.
-        device.executeShellCommand("input tap 540 600")
-        device.waitForIdle(1_000)
+        // Navigate: Home → deck → "Reveal answer" button.
+        tap(By.text("Fixture Deck (Synthetic)"))
+        tap(By.text("Reveal answer"))
         capture("06_study_answer.png")
     }
 }

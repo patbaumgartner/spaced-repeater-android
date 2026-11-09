@@ -1,8 +1,9 @@
 # Screenshots
 
 Screenshots are taken with the real app on a device or emulator so the docs
-always show authentic UI. The PNG files are committed alongside this catalogue
-so published docs render without a capture step.
+always show authentic UI. The PNG files are **not** committed — they are
+gitignored (`docs/screenshots/*.png`) and regenerated locally on each machine
+with a synthetic deck, so no private names or faces can enter the repository.
 
 ## Capturing screenshots
 
@@ -44,9 +45,9 @@ standard markdown:
 
 ## Screenshot catalogue
 
-All captures were taken from a 1080×1920 @420dpi API 35 emulator running the
-debug build of this repository, with the bundled `sample.zip` deck imported
-(70-card "Gesichter und Namen" deck).
+Captures are taken from a 1080×1920 @420dpi API 35 emulator running the debug
+build of this repository. `ScreenshotsTest` self-seeds a synthetic deck (no
+private data) directly into the app database before each capture.
 
 | File | Screen | Notes |
 |------|--------|-------|
@@ -66,9 +67,9 @@ debug build of this repository, with the bundled `sample.zip` deck imported
 - Commit the updated PNG files alongside the code change.
 - Screenshot PNGs are gitignored (`docs/screenshots/*.png`) so they are not
   accidentally committed; they are regenerated locally on each machine.
-- Tap coordinates in `ScreenshotsTest` are tuned for a 1080×2280 Pixel-5
-  display; the committed captures were taken on a 1080×1920 @420dpi emulator.
-  Adjust `input tap X Y` values for other resolutions.
+- Navigation in `ScreenshotsTest` uses UiSelector (text / content-description),
+  so it works on any display resolution. Captures were taken on a 1080×1920
+  @420dpi API 35 emulator.
 - Screenshots include the status bar and nav bar to reflect the real learner
   experience.
 - On hosts without KVM (for example WSL 2 without nested virtualization), the
