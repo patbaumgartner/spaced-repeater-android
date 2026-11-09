@@ -75,7 +75,13 @@ class SampleDeckStatsIntegrationTest {
             .build()
         val mediaStore = DeckMediaStore(context.cacheDir)
         val scheduler = SM2Scheduler()
-        val deckRepository = DeckRepository(db.deckDao(), mediaStore)
+        val deckRepository = DeckRepository(
+            deckDao = db.deckDao(),
+            cardDao = db.cardDao(),
+            cardStateDao = db.cardStateDao(),
+            dbTransaction = roomDbTransaction(db),
+            mediaStore = mediaStore,
+        )
         cardRepository = CardRepository(
             db = db,
             cardDao = db.cardDao(),
@@ -87,7 +93,6 @@ class SampleDeckStatsIntegrationTest {
         statsRepository = StatsRepository(db.reviewLogDao())
         importer = DeckImporter(
             deckRepository = deckRepository,
-            cardRepository = cardRepository,
             parser = MarkdownParser(),
             mediaStore = mediaStore,
         )

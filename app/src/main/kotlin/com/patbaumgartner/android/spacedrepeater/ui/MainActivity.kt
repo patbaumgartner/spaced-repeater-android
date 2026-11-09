@@ -53,15 +53,20 @@ class MainActivity : ComponentActivity() {
             // learner toggles dark mode in Settings (null = follow system).
             val darkThemePreference by appPreferencesRepository.darkThemeFlow()
                 .collectAsStateWithLifecycle(initialValue = appPreferencesRepository.darkTheme())
+            // Reactive so the permission prompt only appears while reminders are on (UC-07).
+            val remindersEnabled by appPreferencesRepository.remindersEnabledFlow()
+                .collectAsStateWithLifecycle(initialValue = appPreferencesRepository.remindersEnabled())
             SpacedRepeaterTheme(darkTheme = darkThemePreference ?: isSystemInDarkTheme()) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val context = LocalContext.current
                     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
                         ActivityResultContracts.RequestPermission(),
                     ) { /* Granting is optional; reminders simply do not post (UC-07 3a). */ }
-                    LaunchedEffect(Unit) {
+                    LaunchedEffect(remindersEnabled) {
+                        // Only ask for notification permission while reminders are enabled (UC-07).
                         @Suppress("NewApi") // TIRAMISU is API 31; the check guards a permissions request, not a feature check.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        if (remindersEnabled &&
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
                             android.content.pm.PackageManager.PERMISSION_GRANTED
                         ) {

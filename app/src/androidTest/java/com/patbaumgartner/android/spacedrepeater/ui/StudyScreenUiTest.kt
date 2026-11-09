@@ -77,11 +77,13 @@ class StudyScreenUiTest {
         )
         val deckRepository = DeckRepository(
             deckDao = db.deckDao(),
+            cardDao = db.cardDao(),
+            cardStateDao = db.cardStateDao(),
+            dbTransaction = roomDbTransaction(db),
             mediaStore = DeckMediaStore(context.getDir("test-media", android.content.Context.MODE_PRIVATE)),
         )
         val importer = DeckImporter(
             deckRepository = deckRepository,
-            cardRepository = cardRepository,
             parser = com.patbaumgartner.android.spacedrepeater.data.importing.MarkdownParser(),
             mediaStore = DeckMediaStore(context.getDir("test-staging", android.content.Context.MODE_PRIVATE)),
         )

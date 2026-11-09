@@ -70,12 +70,14 @@ class ImportScreenUiTest {
         )
         val deckRepository = DeckRepository(
             deckDao = db.deckDao(),
+            cardDao = db.cardDao(),
+            cardStateDao = db.cardStateDao(),
+            dbTransaction = roomDbTransaction(db),
             mediaStore = DeckMediaStore(context.getDir("test-media", Context.MODE_PRIVATE)),
         )
         viewModel = ImportViewModel(
             DeckImporter(
                 deckRepository = deckRepository,
-                cardRepository = cardRepository,
                 parser = MarkdownParser(),
                 mediaStore = DeckMediaStore(context.getDir("test-staging", Context.MODE_PRIVATE)),
             ),
@@ -89,6 +91,9 @@ class ImportScreenUiTest {
 
     private fun deckRepository() = DeckRepository(
         deckDao = db.deckDao(),
+        cardDao = db.cardDao(),
+        cardStateDao = db.cardStateDao(),
+        dbTransaction = roomDbTransaction(db),
         mediaStore = DeckMediaStore(context.getDir("test-media", Context.MODE_PRIVATE)),
     )
 

@@ -58,9 +58,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDeckRepository(
-        dao: com.patbaumgartner.android.spacedrepeater.data.local.deck.DeckDao,
+        deckDao: com.patbaumgartner.android.spacedrepeater.data.local.deck.DeckDao,
+        cardDao: com.patbaumgartner.android.spacedrepeater.data.local.card.CardDao,
+        cardStateDao: com.patbaumgartner.android.spacedrepeater.data.local.card.CardStateDao,
+        dbTransaction: DbTransaction,
         mediaStore: DeckMediaStore,
-    ): DeckRepository = DeckRepository(dao, mediaStore)
+    ): DeckRepository = DeckRepository(deckDao, cardDao, cardStateDao, dbTransaction, mediaStore)
 
     @Provides
     @Singleton
@@ -100,11 +103,9 @@ object AppModule {
     @Singleton
     fun provideDeckImporter(
         deckRepository: DeckRepository,
-        cardRepository: CardRepository,
         mediaStore: DeckMediaStore,
     ): DeckImporter = DeckImporter(
         deckRepository = deckRepository,
-        cardRepository = cardRepository,
         parser = MarkdownParser(),
         mediaStore = mediaStore,
     )

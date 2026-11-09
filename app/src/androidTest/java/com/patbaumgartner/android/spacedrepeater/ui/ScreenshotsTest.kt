@@ -1,14 +1,23 @@
 package com.patbaumgartner.android.spacedrepeater.ui
 
 import android.os.Environment
+import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4
 import androidx.test.uiautomator.UiDevice
+import com.patbaumgartner.android.spacedrepeater.data.local.SpacedRepeaterDatabase
+import com.patbaumgartner.android.spacedrepeater.data.local.card.CardDao
+import com.patbaumgartner.android.spacedrepeater.data.local.card.CardStateDao
+import com.patbaumgartner.android.spacedrepeater.data.local.deck.DeckDao
+import com.patbaumgartner.android.spacedrepeater.data.local.model.CardEntity
+import com.patbaumgartner.android.spacedrepeater.data.local.model.CardStateEntity
+import com.patbaumgartner.android.spacedrepeater.data.local.model.DeckEntity
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import java.io.IOException
+import kotlinx.coroutines.runBlocking
 
 /**
  * Screenshot instrumented test for docs / README.
@@ -18,6 +27,10 @@ import java.io.IOException
  *   /sdcard/Android/data/com.patbaumgartner.android.spacedrepeater/files/Pictures/SpacedRepeater/
  * (the app's external files dir — writable without storage permissions)
  *
+ * The test seeds a **synthetic** deck (no private names or faces) directly into
+ * the app database so every screen has content to render and the screenshots
+ * are reproducible without the private sample deck.
+ *
  * Run on a connected device or emulator:
  *
  *   # Build and install the debug APK
@@ -25,7 +38,6 @@ import java.io.IOException
  *
  *   # Run screenshot captures
  *   ./gradlew connectedDebugAndroidTest \
- *     -PtestScreenshot=true \
  *     --tests "com.patbaumgartner.android.spacedrepeater.ui.ScreenshotsTest"
  *
  *   # Pull screenshots to the repo
@@ -58,6 +70,48 @@ class ScreenshotsTest {
         ).also { it.mkdirs() }
     }
 
+    /** Seeds a synthetic deck (no private data) directly into the app database
+     * so every screen has content to render. Runs before each test. */
+    @Before
+    fun seedSyntheticDeck() = runBlocking<Unit> {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val db = Room.databaseBuilder(
+            context,
+            SpacedRepeaterDatabase::class.java,
+            "spaced_repeater.db",
+        ).build()
+        try {
+            val deckDao = db.deckDao()
+            val cardDao = db.cardDao()
+            val stateDao = db.cardStateDao()
+            val now = System.currentTimeMillis()
+            val deckId = deckDao.insert(
+                DeckEntity(
+                    name = "Fixture Deck (Synthetic)",
+                    description = "Synthetic deck used for screenshot captures; no private data.",
+                    createdAt = now,
+                ),
+            )
+            val cardId = cardDao.insertAll(
+                listOf(
+                    CardEntity(
+                        deckId = deckId,
+                        front = "Wie heisst diese Person?\n\n![Portraet](media/card-001.png)",
+                        back = "# Answer\n\nSynthetic Name\n\nGruppe: Test / CI.Fixture",
+                        createdAt = now,
+                    ),
+                ),
+            ).first()
+            stateDao.insertAll(
+                listOf(
+                    CardStateEntity(cardId = cardId, dueDate = now, phase = "NEW"),
+                ),
+            )
+        } finally {
+            db.close()
+        }
+    }
+
     /**
      * Captures the current screen to [fileName] inside [outDir].
      *
@@ -74,7 +128,8 @@ class ScreenshotsTest {
 
     // ------------------------------------------------------------------
     // Single JUnit methods — each runnable in isolation via
-    //   adb shell am instrument -w ... -e class ...#methodName
+    //   adb shell am instrument -w .../androidx.test.runner.AndroidJUnitRunner \
+    //     -e class ...#methodName
     //
     // Tap coordinates are approximate for a 1080×2280 Pixel-5 display.
     // Adjust if your emulator or device has a different resolution.

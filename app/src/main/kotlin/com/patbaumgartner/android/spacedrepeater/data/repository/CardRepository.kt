@@ -41,14 +41,6 @@ class CardRepository(
     fun observeDueCards(deckId: Long, now: Long = System.currentTimeMillis()): Flow<List<Card>> =
         cardDao.observeDueCards(deckId, now).map { it.map(CardEntity::toDomain) }
 
-    /** Inserts [cards] together with a fresh NEW schedule bound to each generated card id. */
-    suspend fun insertCards(cards: List<CardEntity>, dueDate: Long) {
-        dbTransaction.run {
-            val ids = cardDao.insertAll(cards)
-            cardStateDao.insertAll(ids.map { CardStateEntity(cardId = it, dueDate = dueDate) })
-        }
-    }
-
     suspend fun stateFor(cardId: Long): CardState? = cardStateDao.getById(cardId)?.toDomain()
 
     /** Phases of every card in the deck, keyed by card id. Used for the daily new-card limit. */

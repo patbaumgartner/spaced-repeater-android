@@ -60,7 +60,12 @@ debug build of this repository, with the bundled `sample.zip` deck imported
 ## Notes for contributors
 
 - Always re-run the screenshot test after UI changes and update the files.
+- **Never commit screenshots captured with the private sample deck** — real names
+  and faces must not enter the public repo (see CONTRIBUTING). Capture with a
+  synthetic deck (e.g. `app/src/test/resources/fixture-deck/deck.zip`) instead.
 - Commit the updated PNG files alongside the code change.
+- Screenshot PNGs are gitignored (`docs/screenshots/*.png`) so they are not
+  accidentally committed; they are regenerated locally on each machine.
 - Tap coordinates in `ScreenshotsTest` are tuned for a 1080×2280 Pixel-5
   display; the committed captures were taken on a 1080×1920 @420dpi emulator.
   Adjust `input tap X Y` values for other resolutions.
