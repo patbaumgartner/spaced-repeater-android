@@ -44,6 +44,9 @@ Thumbs.db
 *.swp
 *~
 sample/
+# Screenshots are captured locally and must never contain private deck data
+# (real names/faces). Regenerate with a synthetic deck only; do not commit PNGs.
+docs/screenshots/*.png
 # Unlazy ledgers and state
 GATES.md
 .unlazy/

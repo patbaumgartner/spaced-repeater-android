@@ -6,6 +6,7 @@ import com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferences
 import com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferencesRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.StudyLimits
 import com.patbaumgartner.android.spacedrepeater.data.repository.StudyLimitsRepository
+import com.patbaumgartner.android.spacedrepeater.service.ReviewReminderService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val studyLimitsRepository: StudyLimitsRepository,
     private val appPreferencesRepository: AppPreferencesRepository,
+    private val reminderService: ReviewReminderService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -45,6 +47,11 @@ class SettingsViewModel @Inject constructor(
 
     fun setRemindersEnabled(enabled: Boolean) {
         appPreferencesRepository.updateRemindersEnabled(enabled)
+        if (!enabled) {
+            // Opt-out takes effect immediately: drop any pending reminder (UC-07).
+            // The worker also re-checks the pref, so this is defense in depth.
+            reminderService.cancel()
+        }
         _uiState.value = _uiState.value.copy(remindersEnabled = enabled)
     }
 

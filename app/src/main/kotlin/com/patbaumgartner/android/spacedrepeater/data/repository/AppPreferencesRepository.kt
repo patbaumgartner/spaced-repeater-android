@@ -65,6 +65,23 @@ class AppPreferencesRepository @Inject constructor(
     fun remindersEnabled(default: Boolean = true): Boolean =
         prefs.getBoolean(KEY_REMINDERS_ENABLED, default)
 
+    /**
+     * Emits the reminders toggle whenever it changes, so observers (e.g. the
+     * notification-permission request in MainActivity) react without a restart.
+     * Replays the current value on collection.
+     */
+    fun remindersEnabledFlow(): Flow<Boolean> =
+        callbackFlow {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { sp, key ->
+                if (key == KEY_REMINDERS_ENABLED) {
+                    trySend(sp.getBoolean(KEY_REMINDERS_ENABLED, true))
+                }
+            }
+            prefs.registerOnSharedPreferenceChangeListener(listener)
+            trySend(remindersEnabled())
+            awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+        }
+
     fun updateRemindersEnabled(value: Boolean) {
         prefs.edit().putBoolean(KEY_REMINDERS_ENABLED, value).apply()
     }

@@ -119,6 +119,19 @@ internal fun ImportScreen(
                         pluralStringResource(R.plurals.import_preview_cards, state.preview!!.cardCount),
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    if (state.preview!!.countMismatch) {
+                        // ADR-0006 integrity check: declared vs actual card count.
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            stringResource(
+                                R.string.import_preview_count_mismatch,
+                                state.preview!!.declaredCardCount!!,
+                                state.preview!!.cardCount,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SpacedRepeaterTheme.accents.warning,
+                        )
+                    }
                     Spacer(Modifier.height(24.dp))
                     Button(
                         onClick = { viewModel.confirmImport(context.contentResolver) },

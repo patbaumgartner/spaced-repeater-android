@@ -17,6 +17,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.patbaumgartner.android.spacedrepeater.R
 import com.patbaumgartner.android.spacedrepeater.data.local.card.CardStateDao
+import com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferencesRepository
 import com.patbaumgartner.android.spacedrepeater.ui.MainActivity
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -54,8 +55,12 @@ class ReviewReminderWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     private val cardStateDao: CardStateDao,
+    private val appPreferencesRepository: AppPreferencesRepository,
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
+        // Defense in depth: even if a request was enqueued before the learner
+        // disabled reminders, never post after opt-out (UC-07).
+        if (!appPreferencesRepository.remindersEnabled()) return Result.success()
         val now = System.currentTimeMillis()
         val dueCount = cardStateDao.dueStates(now).size
         if (dueCount > 0 && hasPermission()) {

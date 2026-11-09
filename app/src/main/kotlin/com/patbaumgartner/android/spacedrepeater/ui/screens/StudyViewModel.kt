@@ -55,10 +55,25 @@ internal fun applyNewCardLimit(
 }
 
 /** Single-level undo history: what was rated and the snapshot needed to revert it. */
-private data class RatedReview(    val cardId: Long,
+private data class RatedReview(
+    val cardId: Long,
     val logId: Long,
     val previousState: com.patbaumgartner.android.spacedrepeater.data.local.model.CardStateEntity?,
 )
+
+/** What to do with the pending review reminder after a session (UC-07). */
+internal enum class ReminderDecision { SCHEDULE, CANCEL }
+
+/**
+ * UC-07 reminder decision — pure and unit-testable.
+ *
+ * - Reminders disabled in Settings → cancel any pending reminder.
+ * - **3b. No card due later ([nextDue] == null) → no reminder is scheduled**
+ *   (and any stale pending one is cancelled).
+ * - Otherwise schedule at the next real due timestamp (never a placeholder).
+ */
+internal fun reminderDecision(remindersEnabled: Boolean, nextDue: Long?): ReminderDecision =
+    if (remindersEnabled && nextDue != null) ReminderDecision.SCHEDULE else ReminderDecision.CANCEL
 
 @HiltViewModel
 class StudyViewModel @Inject constructor(
@@ -123,17 +138,16 @@ class StudyViewModel @Inject constructor(
 
     fun canUndo(): Boolean = lastReview != null && !_uiState.value.done && _uiState.value.index > 0
 
-    private fun scheduleReminder() {
+    internal fun scheduleReminder() {
         viewModelScope.launch {
-            if (!appPreferencesRepository.remindersEnabled()) {
-                // Learner opted out of reminders; cancel any pending worker.
-                reminderService.cancel()
-                return@launch
-            }
             val nextDue = cardRepository.nextDueAfter(now = System.currentTimeMillis())
-            // Always schedule the worker — it will re-check due count and permission at execution time.
-            // This handles the case where a session exhausts all due cards but future cards become due later.
-            reminderService.scheduleNext(nextDue ?: Long.MAX_VALUE)
+            when (reminderDecision(appPreferencesRepository.remindersEnabled(), nextDue)) {
+                // Schedule at the next real due timestamp; the worker re-checks the
+                // due count and notification permission again at execution time.
+                ReminderDecision.SCHEDULE -> reminderService.scheduleNext(nextDue!!)
+                // UC-07 3b / opt-out: nothing to remind about — drop any pending work.
+                ReminderDecision.CANCEL -> reminderService.cancel()
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.patbaumgartner.android.spacedrepeater.data.repository.AppPreferencesRepository
 import com.patbaumgartner.android.spacedrepeater.data.repository.StudyLimitsRepository
+import com.patbaumgartner.android.spacedrepeater.service.ReviewReminderService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -31,6 +32,7 @@ class SettingsViewModelTest {
     private lateinit var limitEditor: SharedPreferences.Editor
     private lateinit var appPrefs: SharedPreferences
     private lateinit var appPrefsEditor: SharedPreferences.Editor
+    private lateinit var reminderService: ReviewReminderService
     private lateinit var viewModel: SettingsViewModel
 
     @Before
@@ -53,7 +55,8 @@ class SettingsViewModelTest {
         }
         val studyLimitsRepository = StudyLimitsRepository(context, mockk(relaxed = true))
         val appPreferencesRepository = AppPreferencesRepository(context)
-        viewModel = SettingsViewModel(studyLimitsRepository, appPreferencesRepository)
+        reminderService = mockk<ReviewReminderService>(relaxed = true)
+        viewModel = SettingsViewModel(studyLimitsRepository, appPreferencesRepository, reminderService)
     }
 
     @After
@@ -68,6 +71,15 @@ class SettingsViewModelTest {
         assertEquals(20, state.newPerDay)
         assertEquals(true, state.remindersEnabled)
         assertEquals(null, state.darkTheme)
+    }
+
+    @Test
+    fun `setRemindersEnabled false cancels pending reminder`() {
+        viewModel.setRemindersEnabled(false)
+
+        verify { appPrefsEditor.putBoolean(AppPreferencesRepository.KEY_REMINDERS_ENABLED, false) }
+        verify { reminderService.cancel() }
+        assertEquals(false, viewModel.uiState.value.remindersEnabled)
     }
 
     @Test

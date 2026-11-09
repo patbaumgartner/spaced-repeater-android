@@ -115,6 +115,40 @@ class DeckPackageReaderTest {
     }
 
     @Test
+    fun tooManyEntriesAreRejected() {
+        val dir = tmp.newFolder("staging")
+        val tooMany = zip(
+            "deck.json" to "{}".toByteArray(),
+            *(0 until 10_001).flatMap { listOf("cards/card-$it.md" to "# q\n---\n# a".toByteArray()) }.toTypedArray(),
+        )
+        try {
+            DeckPackageReader.read(ByteArrayInputStream(tooMany), dir)
+            assertTrue("expected ImportException for too many entries", false)
+        } catch (e: ImportException) {
+            assertTrue(e.message!!.contains("more than"))
+        }
+    }
+
+    @Test
+    fun totalSizeGuardCountsAllBytes() {
+        val dir = tmp.newFolder("staging")
+        // Each media entry is under its own per-entry cap, but together they exceed
+        // MAX_TOTAL_BYTES → the archive must be rejected as a zip bomb.
+        val big = zip(
+            "deck.json" to "{}".toByteArray(),
+            "cards/card-001.md" to "q\n---\na".toByteArray(),
+            // 11 entries × 20 MB ≈ 220 MB > MAX_TOTAL_BYTES (200 MB)
+            *(0 until 11).flatMap { listOf("media/fill-$it.png" to ByteArray(20 * 1024 * 1024)) }.toTypedArray(),
+        )
+        try {
+            DeckPackageReader.read(ByteArrayInputStream(big), dir)
+            assertTrue("expected ImportException for total-size cap", false)
+        } catch (e: ImportException) {
+            assertTrue(e.message!!.contains("zip-bomb guard"))
+        }
+    }
+
+    @Test
     fun readsFaceDeckWhenProvided() {
         val path = System.getenv("FACE_DECK") ?: return
         val dir = tmp.newFolder("face")

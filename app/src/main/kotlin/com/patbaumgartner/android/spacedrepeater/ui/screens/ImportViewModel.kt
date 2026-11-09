@@ -23,10 +23,16 @@ data class ImportUiState(
 
 data class ImportPreview(
     val name: String,
+    /** Actual number of card files found in the archive. */
     val cardCount: Int,
+    /** Manifest-declared cardCount, kept for the ADR-0006 integrity check. */
+    val declaredCardCount: Int? = null,
     val description: String = "",
     val tags: List<String> = emptyList(),
-)
+) {
+    /** True when the manifest's declared cardCount differs from the actual card files. */
+    val countMismatch: Boolean get() = declaredCardCount != null && declaredCardCount != cardCount
+}
 
 data class ImportOutcome(
     val deckName: String,
@@ -46,14 +52,17 @@ class ImportViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = ImportUiState(importing = true, error = null, archiveUri = uri)
             try {
-                val manifest = contentResolver.openInputStream(uri)?.use { importer.readManifest(it) }
+                val preview = contentResolver.openInputStream(uri)?.use { importer.readPreview(it) }
                     ?: throw Exception("Could not open archive")
                 _uiState.value = ImportUiState(
                     preview = ImportPreview(
-                        name = manifest.name,
-                        cardCount = manifest.declaredCardCount ?: 0,
-                        description = manifest.description,
-                        tags = manifest.tags,
+                        name = preview.manifest.name,
+                        // Show the ACTUAL number of card files; the declared manifest
+                        // count is kept for the ADR-0006 integrity warning.
+                        cardCount = preview.actualCardCount,
+                        declaredCardCount = preview.manifest.declaredCardCount,
+                        description = preview.manifest.description,
+                        tags = preview.manifest.tags,
                     ),
                     archiveUri = uri,
                 )

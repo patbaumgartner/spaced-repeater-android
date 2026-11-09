@@ -23,12 +23,67 @@ class DeckPackage(
 object DeckPackageReader {
     private const val MAX_TEXT_ENTRY_BYTES = 1L * 1024 * 1024
     private const val MAX_MEDIA_ENTRY_BYTES = 20L * 1024 * 1024
+
+    /** Cumulative uncompressed cap across ALL entries — guards against zip bombs. */
+    const val MAX_TOTAL_BYTES = 200L * 1024 * 1024
+
+    /** Maximum number of file entries accepted in one archive. */
+    const val MAX_ENTRIES = 10_000
+
     private val SAFE_MEDIA_NAME = Regex("[A-Za-z0-9][A-Za-z0-9._-]*\\.(png|jpe?g|webp|gif)", RegexOption.IGNORE_CASE)
 
-    fun read(archive: InputStream, mediaDir: File?): DeckPackage {
+    fun read(
+        archive: InputStream,
+        mediaDir: File?,
+        maxTotalBytes: Long = MAX_TOTAL_BYTES,
+        maxEntries: Int = MAX_ENTRIES,
+    ): DeckPackage {
         var manifest: String? = null
         val cards = sortedMapOf<String, String>()
         val media = LinkedHashSet<String>()
+        var totalBytes = 0L
+        var entryCount = 0
+
+        // Local helpers capture totalBytes so every byte read is accounted for,
+        // including entries that are discarded (zip-bomb guard).
+        fun ZipInputStream.copyLimited(out: OutputStream, perEntryLimit: Long, name: String) {
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var entryBytes = 0L
+            while (true) {
+                val read = read(buffer)
+                if (read < 0) break
+                entryBytes += read
+                totalBytes += read
+                if (entryBytes > perEntryLimit) throw ImportException("$name is too large")
+                if (totalBytes > maxTotalBytes) {
+                    throw ImportException("Archive expands beyond $maxTotalBytes bytes (zip-bomb guard)")
+                }
+                out.write(buffer, 0, read)
+            }
+        }
+
+        fun ZipInputStream.readText(name: String): String {
+            val out = ByteArrayOutputStream()
+            copyLimited(out, MAX_TEXT_ENTRY_BYTES, name)
+            return out.toString(Charsets.UTF_8.name())
+        }
+
+        fun ZipInputStream.copyToFile(target: File, name: String) {
+            target.outputStream().use { copyLimited(it, MAX_MEDIA_ENTRY_BYTES, name) }
+        }
+
+        fun ZipInputStream.drainCounted() {
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            while (true) {
+                val read = read(buffer)
+                if (read < 0) break
+                totalBytes += read
+                if (totalBytes > maxTotalBytes) {
+                    throw ImportException("Archive expands beyond $maxTotalBytes bytes (zip-bomb guard)")
+                }
+            }
+        }
+
         ZipInputStream(archive).use { zip ->
             var entry = zip.nextEntry
             while (entry != null) {
@@ -38,6 +93,10 @@ object DeckPackageReader {
                 // never resolved against the file system.
                 val name = entry.name.removePrefix("./")
                 if (!entry.isDirectory) {
+                    entryCount++
+                    if (entryCount > maxEntries) {
+                        throw ImportException("Archive has more than $maxEntries entries")
+                    }
                     when {
                         name == "deck.json" -> manifest = zip.readText(name)
                         name.startsWith("cards/") && name.endsWith(".md") -> cards[name] = zip.readText(name)
@@ -55,38 +114,20 @@ object DeckPackageReader {
                                 if (!target.toPath().normalize().startsWith(mediaDir.toPath().normalize())) {
                                     throw ImportException("Unsafe media entry name: $fileName")
                                 }
-                                zip.copyLimited(target, name)
+                                zip.copyToFile(target, name)
                                 media += fileName
+                            } else {
+                                // Not an allowlisted image: drain and count, never write.
+                                zip.drainCounted()
                             }
                         }
+                        else -> zip.drainCounted()
                     }
                 }
                 entry = zip.nextEntry
             }
         }
         return DeckPackage(manifest, cards.values.toList(), media)
-    }
-
-    private fun ZipInputStream.readText(name: String): String {
-        val out = ByteArrayOutputStream()
-        copyLimited(out, MAX_TEXT_ENTRY_BYTES, name)
-        return out.toString(Charsets.UTF_8.name())
-    }
-
-    private fun ZipInputStream.copyLimited(target: File, name: String) {
-        target.outputStream().use { copyLimited(it, MAX_MEDIA_ENTRY_BYTES, name) }
-    }
-
-    private fun ZipInputStream.copyLimited(out: OutputStream, limit: Long, name: String) {
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        var total = 0L
-        while (true) {
-            val read = read(buffer)
-            if (read < 0) break
-            total += read
-            if (total > limit) throw ImportException("$name is too large")
-            out.write(buffer, 0, read)
-        }
     }
 }
 

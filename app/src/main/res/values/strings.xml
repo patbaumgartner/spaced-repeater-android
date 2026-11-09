@@ -50,6 +50,7 @@
         <item quantity="one">%1$d card</item>
         <item quantity="other">%1$d cards</item>
     </plurals>
+    <string name="import_preview_count_mismatch">Manifest declares %1$d cards, but the archive contains %2$d.</string>
     <plurals name="import_done_message">
         <item quantity="one">Imported %1$d card (%2$d skipped).</item>
         <item quantity="other">Imported %1$d cards (%2$d skipped).</item>
