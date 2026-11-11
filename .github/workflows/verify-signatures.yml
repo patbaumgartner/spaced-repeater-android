@@ -1,0 +1,94 @@
+---
+name: Verify signatures
+
+# Every commit that reaches main (direct push or via a pull request) must
+# carry a valid cryptographic signature. This job verifies each commit in the
+# affected range with git against the pinned trust store:
+#   - .github/keys/*.asc          maintainer public keys (committed, pinned)
+#   - .github/allowed_signers     principals allowed to sign with SSH keys
+#   - https://github.com/web-flow.gpg  GitHub's key, which signs merge/squash
+#     commits created through the GitHub web UI
+#
+# Platform bots (dependabot[bot]) are the only exemption: GitHub does not sign
+# Dependabot commits, so they are matched by exact author identity and only
+# reported as warnings. Everything else must verify as "G" (good signature).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-signatures-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-commit-signatures:
+    name: Verify commit signatures
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Import trusted public keys
+        run: |
+          for key in .github/keys/*.asc; do
+            gpg --batch --import "$key"
+          done
+          curl -fsSL https://github.com/web-flow.gpg | gpg --batch --import
+          # Mark all imported keys as ultimately trusted so git reports "G"
+          # (good signature) instead of "U" (good, unknown validity).
+          gpg --list-keys --with-colons | awk -F: '/^fpr:/ {print $10 ":6:"}' \
+            | gpg --batch --import-ownertrust
+          gpg --list-keys --keyid-format long
+
+      - name: Trust SSH allowed signers
+        run: git config --local gpg.ssh.allowedSignersFile "$GITHUB_WORKSPACE/.github/allowed_signers"
+
+      - name: Resolve commit range
+        id: range
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            # New branch or force push: verify the pushed tip.
+            range="${{ github.event.after }}"
+          else
+            range="${{ github.event.before }}..${{ github.event.after }}"
+          fi
+          count=$(git rev-list --count "$range")
+          echo "range=$range" >> "$GITHUB_OUTPUT"
+          echo "Verifying $count commit(s) in range $range"
+
+      - name: Verify every commit signature
+        run: |
+          range="${{ steps.range.outputs.range }}"
+          rc=0
+          while IFS=$'\x1f' read -r sha status signer email subject; do
+            if [ "$status" = "G" ]; then
+              echo "ok       $sha ${subject} (good signature: ${signer})"
+            elif [ "$email" = "dependabot[bot]@users.noreply.github.com" ]; then
+              echo "::warning::$sha ${subject} — platform bot commit (GitHub does not sign"
+              echo "::warning::Dependabot commits); exempt by exact author identity"
+            else
+              echo "::error::$sha ${subject} — signature status '$status'"
+              echo "::error::signer: ${signer:-none}, author: ${email}"
+              echo "::error::All commits must be signed: git config --global commit.gpgsign true"
+              echo "::error::(see CONTRIBUTING.md, 'Sign your commits')."
+              rc=1
+            fi
+          done < <(git log --format='%H%x1f%G?%x1f%GS%x1f%ae%x1f%s' "$range")
+          if [ "$rc" -ne 0 ]; then
+            echo "Unsigned or unverifiable commits detected in $range"
+            exit 1
+          fi
+          echo "All non-bot commits in $range are signed and verified."

@@ -12,5 +12,6 @@
 
 - [ ] Behavioural tests cover the change where practical.
 - [ ] `./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease` passes.
+- [ ] Commits are signed (`commit.gpgsign=true`); the Verify signatures CI check passes.
 - [ ] No credentials, private decks, learner data, or generated output are included.
 - [ ] User-facing behavior and documentation are updated.
