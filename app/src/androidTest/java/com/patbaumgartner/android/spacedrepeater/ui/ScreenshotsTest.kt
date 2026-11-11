@@ -79,11 +79,9 @@ class ScreenshotsTest {
      * each test. */
     @Before
     fun seedSyntheticDeck() = runBlocking<Unit> {
-        // Stop any app process from a previous test so the reseed below is
-        // not blocked by an open database handle in another process.
-        device.executeShellCommand(
-            "am force-stop com.patbaumgartner.android.spacedrepeater",
-        )
+        // NOTE: never `am force-stop` the app from here. The instrumentation
+        // test APK shares the app's uid, so force-stop SIGKILLs the test
+        // runner process itself and crashes the whole instrumentation run.
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val db = Room.databaseBuilder(
             context,
@@ -138,10 +136,23 @@ class ScreenshotsTest {
                 "pm grant com.patbaumgartner.android.spacedrepeater android.permission.POST_NOTIFICATIONS",
             )
         }
+        // MainActivity is singleTask: a plain `am start` would only bring the
+        // existing instance — with its previous navigation state — to the
+        // front, so later tests would not start on home. Clear the task so
+        // every test gets a fresh activity at the home destination. Unlike
+        // `am force-stop`, clearing the task only finishes activities and
+        // never kills the instrumentation process.
         device.executeShellCommand(
-            "am start -W -n com.patbaumgartner.android.spacedrepeater/.ui.MainActivity",
+            "am start -W --activity-new-task --activity-clear-task" +
+                " -n com.patbaumgartner.android.spacedrepeater/.ui.MainActivity",
         )
         device.waitForIdle(30_000)
+        // Safety net in case the grant above did not take effect: dismiss the
+        // system permission dialog if it is showing.
+        if (device.hasObject(By.pkg("com.google.android.permissioncontroller"))) {
+            device.pressBack()
+            device.waitForIdle(5_000)
+        }
     }
 
     /**
