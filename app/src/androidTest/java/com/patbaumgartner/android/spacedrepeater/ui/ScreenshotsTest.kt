@@ -1,5 +1,6 @@
 package com.patbaumgartner.android.spacedrepeater.ui
 
+import android.os.Build
 import android.os.Environment
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
@@ -78,6 +79,11 @@ class ScreenshotsTest {
      * each test. */
     @Before
     fun seedSyntheticDeck() = runBlocking<Unit> {
+        // Stop any app process from a previous test so the reseed below is
+        // not blocked by an open database handle in another process.
+        device.executeShellCommand(
+            "am force-stop com.patbaumgartner.android.spacedrepeater",
+        )
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val db = Room.databaseBuilder(
             context,
@@ -122,6 +128,16 @@ class ScreenshotsTest {
      * not bring any activity to the foreground. Waits generously: on TCG
      * emulators (no KVM) the first frames take minutes. */
     private fun launchApp() {
+        // Reminders default to enabled, so on API 33+ first launch triggers the
+        // system POST_NOTIFICATIONS dialog (GrantPermissionsActivity), which
+        // covers the app UI and makes every UiAutomator selector time out.
+        // Grant the permission up front — `pm grant` works because the debug
+        // APK is debuggable — so no dialog ever appears.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            device.executeShellCommand(
+                "pm grant com.patbaumgartner.android.spacedrepeater android.permission.POST_NOTIFICATIONS",
+            )
+        }
         device.executeShellCommand(
             "am start -W -n com.patbaumgartner.android.spacedrepeater/.ui.MainActivity",
         )
