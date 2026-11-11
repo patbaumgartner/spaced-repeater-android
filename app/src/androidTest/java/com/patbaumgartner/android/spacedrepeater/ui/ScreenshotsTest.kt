@@ -1,5 +1,6 @@
 package com.patbaumgartner.android.spacedrepeater.ui
 
+import android.Manifest
 import android.os.Build
 import android.os.Environment
 import androidx.room.Room
@@ -18,6 +19,7 @@ import com.patbaumgartner.android.spacedrepeater.data.local.model.CardStateEntit
 import com.patbaumgartner.android.spacedrepeater.data.local.model.DeckEntity
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -56,6 +58,24 @@ import kotlinx.coroutines.runBlocking
  */
 @RunWith(AndroidJUnit4::class)
 class ScreenshotsTest {
+
+    companion object {
+        private const val APP_PACKAGE = "com.patbaumgartner.android.spacedrepeater"
+
+        /** Grants POST_NOTIFICATIONS through UiAutomation — the API Android
+         * recommends for instrumented tests — before any test launches the
+         * app, so MainActivity never requests the permission on API 33+. */
+        @BeforeClass
+        @JvmStatic
+        fun grantNotificationPermission() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                InstrumentationRegistry.getInstrumentation().uiAutomation.grantRuntimePermission(
+                    APP_PACKAGE,
+                    Manifest.permission.POST_NOTIFICATIONS,
+                )
+            }
+        }
+    }
 
     private val device: UiDevice by lazy {
         UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
@@ -128,13 +148,18 @@ class ScreenshotsTest {
     private fun launchApp() {
         // Reminders default to enabled, so on API 33+ first launch triggers the
         // system POST_NOTIFICATIONS dialog (GrantPermissionsActivity), which
-        // covers the app UI and makes every UiAutomator selector time out.
-        // Grant the permission up front — `pm grant` works because the debug
-        // APK is debuggable — so no dialog ever appears.
+        // becomes the active window and makes every UiAutomator selector time
+        // out. Grant the permission up front (UiAutomation grant in
+        // @BeforeClass plus `pm grant` here) so no dialog ever appears.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            device.executeShellCommand(
-                "pm grant com.patbaumgartner.android.spacedrepeater android.permission.POST_NOTIFICATIONS",
+            val grantOut = device.executeShellCommand(
+                "pm grant $APP_PACKAGE android.permission.POST_NOTIFICATIONS",
             )
+            println("pm grant output: $grantOut")
+            val permOut = device.executeShellCommand(
+                "dumpsys package $APP_PACKAGE | grep -i POST_NOTIFICATIONS",
+            )
+            println("POST_NOTIFICATIONS state: $permOut")
         }
         // MainActivity is singleTask: a plain `am start` would only bring the
         // existing instance — with its previous navigation state — to the
@@ -142,17 +167,34 @@ class ScreenshotsTest {
         // every test gets a fresh activity at the home destination. Unlike
         // `am force-stop`, clearing the task only finishes activities and
         // never kills the instrumentation process.
-        device.executeShellCommand(
+        var startOut = device.executeShellCommand(
             "am start -W --activity-new-task --activity-clear-task" +
-                " -n com.patbaumgartner.android.spacedrepeater/.ui.MainActivity",
+                " -n $APP_PACKAGE/.ui.MainActivity",
         )
-        device.waitForIdle(30_000)
-        // Safety net in case the grant above did not take effect: dismiss the
-        // system permission dialog if it is showing.
-        if (device.hasObject(By.pkg("com.google.android.permissioncontroller"))) {
-            device.pressBack()
-            device.waitForIdle(5_000)
+        if (!startOut.contains("Status: ok")) {
+            // Fall back to a plain launch if the task-clearing flags are rejected.
+            startOut = device.executeShellCommand(
+                "am start -W -n $APP_PACKAGE/.ui.MainActivity",
+            )
         }
+        println("am start output: $startOut")
+        device.waitForIdle(30_000)
+        // A system dialog that appears asynchronously (after the first
+        // composition) becomes the active window, hiding app nodes from
+        // UiAutomator. Poll until the app window is actually up, pressing
+        // back to dismiss any permission dialog that shows in the meantime.
+        val deadline = System.currentTimeMillis() + 60_000
+        while (System.currentTimeMillis() < deadline) {
+            when {
+                device.hasObject(By.pkg("com.google.android.permissioncontroller")) -> {
+                    device.pressBack()
+                    device.waitForIdle(2_000)
+                }
+                device.hasObject(By.pkg(APP_PACKAGE)) -> break
+                else -> Thread.sleep(500)
+            }
+        }
+        println("foreground package after launch: ${device.currentPackageName}")
     }
 
     /**
