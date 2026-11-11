@@ -29,6 +29,27 @@ export ANDROID_HOME="$HOME/Android/Sdk"
 Use Conventional Commit subjects, for example `fix: preserve review state` or
 `docs: clarify deck package format`.
 
+## Sign your commits
+
+Every commit that reaches `main` must be signed and verified (see
+[ADR-0008](docs/adr/0008-signed-commits.md)). CI rejects unsigned commits, and
+the `main` branch ruleset requires signed commits, so configure signing once:
+
+```bash
+git config --global user.signingkey <your-key-id>   # e.g. GPG or SSH signing key
+git config --global commit.gpgsign true
+git config --global gpg.format openpgp               # or "ssh" for SSH signing
+```
+
+Add the matching **public** key to your GitHub account (Settings → SSH and GPG
+keys) so commits show the **Verified** badge. The maintainer key is pinned in
+the repo at `.github/keys/` and is what CI verifies against. SSH signing
+(`gpg.format=ssh`) is also fine — add the key as a *signing* key on your
+account and make sure your identity is listed in `.github/allowed_signers`,
+which CI uses to verify SSH signatures. Never commit private keys or other
+secret signing material. The only exempt identity is the `dependabot[bot]`
+platform bot, which GitHub does not sign.
+
 ## Validate
 
 ```bash

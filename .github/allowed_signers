@@ -1,0 +1,7 @@
+# Principals allowed to sign commits with SSH keys. Git reads this file via
+# gpg.ssh.allowedSignersFile (set in verify-signatures.yml and locally).
+# Format per line: <principal> <key-type> <public-key>
+# When you sign with SSH (gpg.format=ssh), add your identity here and add the
+# public key to your GitHub account as a *signing* key (Settings -> SSH and
+# GPG keys) so github.com shows the Verified badge.
+contact@patbaumgartner.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHWidBhTpsFoShCf+UlB32KyJCiNmDXn85iGEHnZ1iOC
