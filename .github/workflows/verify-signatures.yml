@@ -59,11 +59,19 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             range="${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
-          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-            # New branch or force push: verify the pushed tip.
-            range="${{ github.event.after }}"
           else
-            range="${{ github.event.before }}..${{ github.event.after }}"
+            before="${{ github.event.before }}"
+            after="${{ github.event.after }}"
+            if [ "$before" = "0000000000000000000000000000000000000000" ] \
+               || ! git rev-parse -q --verify "$before^{commit}" >/dev/null \
+               || ! git merge-base --is-ancestor "$before" "$after"; then
+              # New branch or force push: `before` is missing or not an
+              # ancestor of the pushed tip, so verify the entire history
+              # reachable from the pushed tip.
+              range="$after"
+            else
+              range="$before..$after"
+            fi
           fi
           count=$(git rev-list --count "$range")
           echo "range=$range" >> "$GITHUB_OUTPUT"
