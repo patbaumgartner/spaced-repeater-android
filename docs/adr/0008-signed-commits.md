@@ -51,7 +51,11 @@ All commits that reach `main` must be signed and verified:
 
 - Contributors must configure signing before pushing (`CONTRIBUTING.md`);
   unsigned PRs are blocked at merge time with a clear error.
-- Historical unsigned commits on `main` are not rewritten (that would change
-  public SHAs); the gate applies to new commits only.
+- On 2026-11-12 the maintainer ordered a one-time rewrite: the entire history
+  of `main` (45 commits) was re-signed with the account GPG key and
+  force-pushed, so every commit on `main` now carries a valid, GitHub-verified
+  signature. From then on the history of `main` is treated as immutable — no
+  further rewrites or force-pushes; the signature gate applies to every new
+  commit.
 - The Dependabot exemption is the single documented exception; it is scoped to
   one exact identity, not to "anything that looks like a bot".
