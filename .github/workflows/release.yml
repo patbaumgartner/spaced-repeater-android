@@ -87,7 +87,7 @@ jobs:
         run: |
           notes="$(mktemp)"
           {
-            echo "Latest signed build of main (commit ${GITHUB_SHA})."
+            echo "Latest signed build of ${GITHUB_REF_NAME} (commit ${GITHUB_SHA})."
             echo
             echo "Installs over official releases and vice versa (same signing key)."
             echo "Verify the download against SHA256SUMS before installing."
@@ -160,7 +160,7 @@ jobs:
           apksigner="$(ls -1 "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
           "$apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk
           "$apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk \
-            | awk '/SHA-256 digest/ {print $3; exit}' > cert-sha256.txt
+            | awk '/SHA-256 digest/ {print $NF; exit}' > cert-sha256.txt
           echo "sha256=$(cat cert-sha256.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Stage artifacts
