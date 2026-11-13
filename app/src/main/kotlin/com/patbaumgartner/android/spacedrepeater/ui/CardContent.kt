@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,21 @@ fun parseCardBlocks(markdown: String): List<CardBlock> {
     return blocks
 }
 
+/**
+ * Canonical containment check: [path] (after stripping an optional `file://`
+ * prefix) must resolve to a file inside [rootDir]. Card text comes from
+ * imported deck packages, so image references are only allowed to point into
+ * the app-private media directory — defense in depth on top of the import-time
+ * allowlist in `DeckPackageReader`. Anything outside renders as alt text.
+ */
+fun isPathInsideDir(rootDir: File, path: String): Boolean {
+    if (path.isBlank()) return false
+    return runCatching {
+        val root = rootDir.canonicalFile.toPath()
+        File(path.removePrefix("file://")).canonicalFile.toPath().startsWith(root)
+    }.getOrDefault(false)
+}
+
 @Composable
 internal fun CardContent(
     markdown: String,
@@ -58,6 +74,9 @@ internal fun CardContent(
     color: Color = Color.Unspecified,
 ) {
     val blocks = remember(markdown) { parseCardBlocks(markdown) }
+    // Only images inside the app-private media root are rendered (see
+    // isPathInsideDir); everything else falls back to its alt text.
+    val mediaRoot = File(LocalContext.current.filesDir, "media")
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -66,16 +85,18 @@ internal fun CardContent(
         for (block in blocks) {
             when (block) {
                 is CardBlock.Text -> Text(block.text, style = style, color = color, textAlign = TextAlign.Center)
-                is CardBlock.Image -> CardImage(block, style, color)
+                is CardBlock.Image -> CardImage(block, mediaRoot, style, color)
             }
         }
     }
 }
 
 @Composable
-private fun CardImage(block: CardBlock.Image, fallbackStyle: TextStyle, color: Color) {
+private fun CardImage(block: CardBlock.Image, mediaRoot: File, fallbackStyle: TextStyle, color: Color) {
     val bitmap by produceState<ImageBitmap?>(initialValue = null, block.path) {
-        value = withContext(Dispatchers.IO) { decodeSampled(block.path, maxDimension = 1280) }
+        value = withContext(Dispatchers.IO) {
+            if (isPathInsideDir(mediaRoot, block.path)) decodeSampled(block.path, maxDimension = 1280) else null
+        }
     }
     val image = bitmap
     if (image != null) {

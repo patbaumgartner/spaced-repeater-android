@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -10,6 +12,21 @@ val gitCommitHash: String = providers.exec {
     commandLine("git", "rev-parse", "--short", "HEAD")
 }.standardOutput.asText.orNull?.trim() ?: "unknown"
 
+// Release signing credentials come from the environment (CI) or from a local,
+// git-ignored keystore.properties file (see CONTRIBUTING.md, "Releases" and
+// ADR-0009). Without either, the release build stays unsigned, which is fine
+// for local development. Never commit the keystore or the passwords.
+val keystoreProps = Properties().apply {
+    val propsFile = rootProject.file("keystore.properties")
+    if (propsFile.isFile) propsFile.inputStream().use(::load)
+}
+
+fun signingSecret(envName: String, propertyName: String): String? =
+    System.getenv(envName)?.takeIf { it.isNotBlank() }
+        ?: keystoreProps.getProperty(propertyName)?.takeIf { it.isNotBlank() }
+
+val releaseKeystoreFile: String? = signingSecret("SR_KEYSTORE_FILE", "storeFile")
+
 android {
     namespace = "com.patbaumgartner.android.spacedrepeater"
     compileSdk = 37
@@ -18,10 +35,23 @@ android {
         applicationId = "com.patbaumgartner.android.spacedrepeater"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        // Overridable from the command line (-PversionCode=… -PversionName=…),
+        // which the release workflow uses to stamp tag-based versions.
+        versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
+        versionName = (project.findProperty("versionName") as String?) ?: "0.1.0"
         buildConfigField("String", "GIT_COMMIT_HASH", "\"$gitCommitHash\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (releaseKeystoreFile != null) {
+            create("release") {
+                storeFile = file(releaseKeystoreFile)
+                storePassword = signingSecret("SR_KEYSTORE_PASSWORD", "storePassword")
+                keyAlias = signingSecret("SR_KEY_ALIAS", "keyAlias")
+                keyPassword = signingSecret("SR_KEY_PASSWORD", "keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -33,6 +63,8 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("boolean", "DEBUG", "false")
+            // Null (unsigned) when no signing credentials are configured.
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
