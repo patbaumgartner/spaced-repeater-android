@@ -14,6 +14,9 @@ on:
   push:
     branches: [main]
     tags: ['v*.*.*']
+  # Manual runs (e.g. from a release branch while a PR is waiting on branch
+  # protection) publish the snapshot job below.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,7 +28,7 @@ concurrency:
 jobs:
   snapshot:
     name: Snapshot build (main)
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
