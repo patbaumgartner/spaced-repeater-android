@@ -5,10 +5,15 @@ All notable changes are documented here. The project follows
 
 ## Unreleased
 
-No public release has been published yet.
-
 ### Added
 
+- Downloadable builds on the GitHub Releases page: every push to `main`
+  publishes a signed **Snapshot** APK (prerelease), and every `vX.Y.Z` tag
+  publishes a signed release with APK, AAB, and `SHA256SUMS`
+  (`.github/workflows/release.yml`, ADR-0009).
+- Release signing is configurable via `SR_*` environment variables or a local
+  `keystore.properties`; `versionName`/`versionCode` can be set with
+  `-PversionName` / `-PversionCode`.
 - Deck import copies bundled `media/` images to app-private storage, and the
   study screen renders Markdown image references (`![alt](media/file.png)`) on
   the front and back of cards. Media is removed together with its deck.
@@ -31,6 +36,9 @@ No public release has been published yet.
 
 ### Fixed
 
+- Card images are only decoded from inside the app-private media directory;
+  `![alt](path)` references pointing anywhere else fall back to the alt text
+  (defense in depth against crafted deck packages).
 - Deck import read `deck.json` and `cards/` from the same consumed stream and
   bound card states to card id `0`; packages are now read in a single pass and
   states use the generated card ids.

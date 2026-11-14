@@ -24,6 +24,22 @@ feature is already available in a release.
 Cloud sync, FSRS, audio cards, cloze deletion, in-app card editing, and
 AnkiWeb integration are outside the current scope.
 
+## Download
+
+Signed builds are published on the
+[Releases](https://github.com/patbaumgartner/spaced-repeater-android/releases)
+page:
+
+- **Releases** (`vX.Y.Z` tags): signed APK and AAB, plus `SHA256SUMS` and the
+  signer certificate fingerprint in the release notes.
+- **Snapshot** (prerelease, rebuilt on every push to `main`): the latest
+  signed APK for testing.
+
+Both use the same release key, so they install over each other as updates.
+Verify a download against `SHA256SUMS` before installing. Sideloading on
+Android 8+ requires allowing "Install unknown apps" for the app you open the
+APK with.
+
 ## Requirements
 
 - Android 8.0 (API 26) or newer
@@ -51,7 +67,12 @@ yamllint .
 git diff --check
 ```
 
-The release APK built from a source checkout is unsigned.
+A release APK built from a plain source checkout is unsigned. To build a
+signed release locally, provide the signing credentials via the
+`SR_KEYSTORE_FILE`, `SR_KEYSTORE_PASSWORD`, `SR_KEY_ALIAS`, and
+`SR_KEY_PASSWORD` environment variables or a local (git-ignored)
+`keystore.properties` file — see [CONTRIBUTING.md](CONTRIBUTING.md#releases)
+and [ADR-0009](docs/adr/0009-release-signing-and-distribution.md).
 
 ## Repository structure
 
