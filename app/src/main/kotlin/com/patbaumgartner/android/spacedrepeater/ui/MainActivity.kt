@@ -51,14 +51,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            // React to theme changes immediately: the flow re-emits when the
-            // learner toggles dark mode in Settings (null = follow system).
-            val darkThemePreference by appPreferencesRepository.darkThemeFlow()
-                .collectAsStateWithLifecycle(initialValue = appPreferencesRepository.darkTheme())
+            // The theme always follows the system dark-mode setting.
+            val darkTheme = isSystemInDarkTheme()
             // Reactive so the permission prompt only appears while reminders are on (UC-07).
             val remindersEnabled by appPreferencesRepository.remindersEnabledFlow()
                 .collectAsStateWithLifecycle(initialValue = appPreferencesRepository.remindersEnabled())
-            val darkTheme = darkThemePreference ?: isSystemInDarkTheme()
             SideEffect {
                 WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = !darkTheme
             }
