@@ -116,7 +116,7 @@ internal fun ImportScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        pluralStringResource(R.plurals.import_preview_cards, state.preview!!.cardCount),
+                        pluralStringResource(R.plurals.import_preview_cards, state.preview!!.cardCount, state.preview!!.cardCount),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     if (state.preview!!.countMismatch) {

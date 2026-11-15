@@ -138,6 +138,7 @@ class StudyScreenUiTest {
         // Question visible before reveal…
         waitUntilText("Question 1")
         composeRule.onNodeWithText("Question 1").assertIsDisplayed()
+        composeRule.onNodeWithText("3 left").assertIsDisplayed()
         // …answer hidden until the card is tapped…
         composeRule.onNodeWithText("Answer 1").assertDoesNotExist()
         composeRule.onNodeWithText("Question 1").performClick()

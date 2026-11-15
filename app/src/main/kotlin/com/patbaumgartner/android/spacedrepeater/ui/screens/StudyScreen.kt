@@ -52,7 +52,7 @@ internal fun StudyScreen(
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = if (s.total > 0) pluralStringResource(R.plurals.study_remaining, s.remaining) else "",
+                text = if (s.total > 0) pluralStringResource(R.plurals.study_remaining, s.remaining, s.remaining) else "",
                 style = MaterialTheme.typography.labelLarge,
                 color = SpacedRepeaterTheme.accents.textMuted,
                 modifier = Modifier.weight(1f),

@@ -149,6 +149,7 @@ class ImportScreenUiTest {
 
         // Preview shows manifest name and card count (UC-01 steps 3–4).
         composeRule.onNodeWithText("Preview Deck").assertIsDisplayed()
+        composeRule.onNodeWithText("4 cards").assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.import_confirm)).performClick()
 
         composeRule.waitUntil(timeoutMillis = 60_000) { viewModel.uiState.value.lastResult != null }

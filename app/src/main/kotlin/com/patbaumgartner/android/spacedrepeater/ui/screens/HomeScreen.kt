@@ -180,7 +180,7 @@ private fun DeckCard(row: HomeDeckUi, onOpenDeck: () -> Unit, onDelete: () -> Un
             }
             if (row.dueCount > 0) {
                 Text(
-                    text = pluralStringResource(R.plurals.home_due_badge, row.dueCount),
+                    text = pluralStringResource(R.plurals.home_due_badge, row.dueCount, row.dueCount),
                     style = MaterialTheme.typography.labelLarge,
                     color = SpacedRepeaterTheme.accents.brand,
                     modifier = Modifier.padding(start = 12.dp),
