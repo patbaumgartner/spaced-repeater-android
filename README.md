@@ -64,6 +64,7 @@ Run the same build and test gates as CI:
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
 yamllint .
+find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
 git diff --check
 ```
 
@@ -88,3 +89,15 @@ gradle/             Wrapper and dependency version catalog
 See [docs/README.md](docs/README.md) for the documentation index,
 [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, and
 [SECURITY.md](SECURITY.md) for vulnerability reporting.
+
+## About
+
+Settings shows the app version, open-source notices, and author information.
+
+© 2026 [Patrick Baumgartner](https://patbaumgartner.com/) - Crafted with ❤️
+
+## License
+
+Spaced Repeater is licensed under the [Apache License 2.0](LICENSE). The bundled
+Manrope typeface is licensed under the SIL Open Font License 1.1; see the
+license notice in Settings.
