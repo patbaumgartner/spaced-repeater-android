@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.patbaumgartner.android.spacedrepeater.BuildConfig
 import com.patbaumgartner.android.spacedrepeater.R
+import com.patbaumgartner.android.spacedrepeater.ui.AuthorNote
 import com.patbaumgartner.android.spacedrepeater.ui.PageHeader
 import com.patbaumgartner.android.spacedrepeater.ui.theme.SpacedRepeaterTheme
 
@@ -76,6 +77,7 @@ internal fun SettingsScreen(
             InfoRow(stringResource(R.string.settings_version), BuildConfig.VERSION_NAME)
             HorizontalDivider()
             InfoRow(stringResource(R.string.settings_commit), BuildConfig.GIT_COMMIT_HASH)
+            AuthorNote()
         }
     }
 }

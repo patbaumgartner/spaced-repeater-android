@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -56,7 +58,11 @@ class MainActivity : ComponentActivity() {
             // Reactive so the permission prompt only appears while reminders are on (UC-07).
             val remindersEnabled by appPreferencesRepository.remindersEnabledFlow()
                 .collectAsStateWithLifecycle(initialValue = appPreferencesRepository.remindersEnabled())
-            SpacedRepeaterTheme(darkTheme = darkThemePreference ?: isSystemInDarkTheme()) {
+            val darkTheme = darkThemePreference ?: isSystemInDarkTheme()
+            SideEffect {
+                WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = !darkTheme
+            }
+            SpacedRepeaterTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val context = LocalContext.current
                     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(

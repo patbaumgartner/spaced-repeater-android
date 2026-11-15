@@ -90,4 +90,12 @@
         <item quantity="other">%1$d cards are due</item>
     </plurals>
     <string name="reminder_text">Time for a review session</string>
+    <string name="about_heading">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_author">© 2026 Patrick Baumgartner - Crafted with ❤️</string>
+    <string name="about_app_license">Apache License 2.0</string>
+    <string name="about_author_name" translatable="false">Patrick Baumgartner</string>
+    <string name="about_author_url" translatable="false">https://patbaumgartner.com/</string>
+    <string name="about_open_source_licenses">Typeface license</string>
+    <string name="about_close">Close</string>
 </resources>

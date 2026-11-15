@@ -13,6 +13,7 @@ Use JDK 27 and Android SDK 37. Gradle needs the SDK location from
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
 yamllint .
+find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
 git diff --check
 ```
 
