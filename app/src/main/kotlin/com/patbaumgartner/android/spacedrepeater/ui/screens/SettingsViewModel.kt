@@ -18,8 +18,6 @@ data class SettingsUiState(
     /** Maximum NEW cards introduced per day; 0 = unlimited. */
     val newPerDay: Int = StudyLimitsRepository.DEFAULT_NEW_PER_DAY,
     val remindersEnabled: Boolean = true,
-    /** Null follows the system dark-mode setting. */
-    val darkTheme: Boolean? = null,
 )
 
 @HiltViewModel
@@ -33,7 +31,6 @@ class SettingsViewModel @Inject constructor(
         SettingsUiState(
             newPerDay = studyLimitsRepository.limits.newPerDay,
             remindersEnabled = appPreferencesRepository.remindersEnabled(),
-            darkTheme = appPreferencesRepository.darkTheme(),
         ),
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -53,11 +50,5 @@ class SettingsViewModel @Inject constructor(
             reminderService.cancel()
         }
         _uiState.value = _uiState.value.copy(remindersEnabled = enabled)
-    }
-
-    /** Null means "follow system". */
-    fun setDarkTheme(value: Boolean?) {
-        appPreferencesRepository.updateDarkTheme(value)
-        _uiState.value = _uiState.value.copy(darkTheme = value)
     }
 }

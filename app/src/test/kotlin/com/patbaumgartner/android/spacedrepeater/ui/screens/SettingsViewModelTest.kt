@@ -20,7 +20,7 @@ import org.junit.Test
 
 /**
  * Unit tests for [SettingsViewModel] — Settings screen state and persistence
- * of the daily new-card limit, reminders toggle, and theme preference.
+ * of the daily new-card limit and reminders toggle.
  * Real repositories over mocked SharedPreferences (mirrors the DAO-mocking
  * pattern used by the repository tests).
  */
@@ -47,7 +47,6 @@ class SettingsViewModelTest {
         appPrefs = mockk {
             every { edit() } returns appPrefsEditor
             every { getBoolean(AppPreferencesRepository.KEY_REMINDERS_ENABLED, true) } returns true
-            every { getString(AppPreferencesRepository.KEY_DARK_THEME, null) } returns null
         }
         val context = mockk<Context> {
             every { getSharedPreferences(StudyLimitsRepository.PREFS_NAME, any()) } returns limitPrefs
@@ -70,7 +69,6 @@ class SettingsViewModelTest {
 
         assertEquals(20, state.newPerDay)
         assertEquals(true, state.remindersEnabled)
-        assertEquals(null, state.darkTheme)
     }
 
     @Test
@@ -108,23 +106,5 @@ class SettingsViewModelTest {
 
         verify { appPrefsEditor.putBoolean(AppPreferencesRepository.KEY_REMINDERS_ENABLED, false) }
         assertEquals(false, viewModel.uiState.value.remindersEnabled)
-    }
-
-    @Test
-    fun `setDarkTheme persists and updates state`() {
-        every { appPrefsEditor.putString(any(), any()) } returns appPrefsEditor
-
-        viewModel.setDarkTheme(true)
-
-        verify { appPrefsEditor.putString(AppPreferencesRepository.KEY_DARK_THEME, "true") }
-        assertEquals(true, viewModel.uiState.value.darkTheme)
-    }
-
-    @Test
-    fun `setDarkTheme null clears the override`() {
-        viewModel.setDarkTheme(null)
-
-        verify { appPrefsEditor.remove(AppPreferencesRepository.KEY_DARK_THEME) }
-        assertEquals(null, viewModel.uiState.value.darkTheme)
     }
 }
