@@ -10,8 +10,9 @@ name: Verify signatures
 #     commits created through the GitHub web UI
 #
 # Platform bots (dependabot[bot]) are the only exemption: GitHub does not sign
-# Dependabot commits, so they are matched by exact author identity and only
-# reported as warnings. Everything else must verify as "G" (good signature).
+# Dependabot commits, so they are matched by author identity pattern (the
+# noreply address is prefixed with the bot's numeric user ID) and only reported
+# as warnings. Everything else must verify as "G" (good signature).
 
 on:
   push:
@@ -84,9 +85,9 @@ jobs:
           while IFS=$'\x1f' read -r sha status signer email subject; do
             if [ "$status" = "G" ]; then
               echo "ok       $sha ${subject} (good signature: ${signer})"
-            elif [ "$email" = "dependabot[bot]@users.noreply.github.com" ]; then
+            elif [[ "$email" == *"dependabot[bot]@users.noreply.github.com" ]]; then
               echo "::warning::$sha ${subject} — platform bot commit (GitHub does not sign"
-              echo "::warning::Dependabot commits); exempt by exact author identity"
+              echo "::warning::Dependabot commits); exempt as platform bot by author identity"
             else
               echo "::error::$sha ${subject} — signature status '$status'"
               echo "::error::signer: ${signer:-none}, author: ${email}"
