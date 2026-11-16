@@ -5,6 +5,21 @@ All notable changes are documented here. The project follows
 
 ## Unreleased
 
+## [0.2.0] - 2026-11-16
+
+### Changed
+
+- The About screen is aligned with the other apps, and the theme now follows
+  the system setting
+
+### Fixed
+
+- Card counts are formatted consistently in the study and import screens
+- The typeface licence is shown in About, and the author note is laid out on
+  separate lines
+
+## [0.1.0] - 2026-11-13
+
 ### Added
 
 - Downloadable builds on the GitHub Releases page: every push to `main`
