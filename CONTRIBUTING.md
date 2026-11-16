@@ -31,9 +31,11 @@ Use Conventional Commit subjects, for example `fix: preserve review state` or
 
 ## Sign your commits
 
-Every commit that reaches `main` must be signed and verified (see
-[ADR-0008](docs/adr/0008-signed-commits.md)). CI rejects unsigned commits, and
-the `main` branch ruleset requires signed commits, so configure signing once:
+Every commit that reaches `main` must be signed (see
+[ADR-0010](docs/adr/0010-remove-verify-signatures-ci-gate.md), which supersedes
+[ADR-0008](docs/adr/0008-signed-commits.md)). The `main` branch ruleset has
+"Require signed commits" enabled, so unsigned commits are rejected at the
+platform level. Configure signing once:
 
 ```bash
 git config --global user.signingkey <your-key-id>   # e.g. GPG or SSH signing key
@@ -42,13 +44,10 @@ git config --global gpg.format openpgp               # or "ssh" for SSH signing
 ```
 
 Add the matching **public** key to your GitHub account (Settings → SSH and GPG
-keys) so commits show the **Verified** badge. The maintainer key is pinned in
-the repo at `.github/keys/` and is what CI verifies against. SSH signing
-(`gpg.format=ssh`) is also fine — add the key as a *signing* key on your
-account and make sure your identity is listed in `.github/allowed_signers`,
-which CI uses to verify SSH signatures. Never commit private keys or other
-secret signing material. The only exempt identity is the `dependabot[bot]`
-platform bot, which GitHub does not sign.
+keys) so commits show the **Verified** badge. Never commit private keys or
+other secret signing material. The only exempt identity is the
+`dependabot[bot]` platform bot, which GitHub does not sign; it is in the
+ruleset bypass list for that reason.
 
 ## Releases
 

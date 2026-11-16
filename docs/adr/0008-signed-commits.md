@@ -1,6 +1,6 @@
 # ADR-0008: Signed and Verified Commits
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0010
 - **Date:** 2026-11-11
 - **Deciders:** Patrick Baumgartner
 

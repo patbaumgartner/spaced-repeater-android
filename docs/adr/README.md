@@ -11,8 +11,9 @@ Lightweight records of significant architecture decisions, using the Michael Nyg
 | [ADR-0005](0005-compose-and-material3.md) | Jetpack Compose with Material 3 | Accepted | 2026-10-14 |
 | [ADR-0006](0006-deck-package-format.md) | ZIP-based markdown deck package format | Accepted | 2026-10-14 |
 | [ADR-0007](0007-workmanager-for-reminders.md) | WorkManager for review reminders | Accepted | 2026-10-14 |
-| [ADR-0008](0008-signed-commits.md) | Signed and verified commits enforced in CI and branch rules | Accepted | 2026-11-11 |
+| [ADR-0008](0008-signed-commits.md) | Signed and verified commits enforced in CI and branch rules | Superseded by ADR-0010 | 2026-11-11 |
 | [ADR-0009](0009-release-signing-and-distribution.md) | Release signing key in repo secrets; APK/AAB published to GitHub Releases | Accepted | 2026-11-13 |
+| [ADR-0010](0010-remove-verify-signatures-ci-gate.md) | Drop the verify-signatures CI workflow; keep the platform ruleset gate | Accepted | 2026-11-16 |
 
 ## Conventions
 
