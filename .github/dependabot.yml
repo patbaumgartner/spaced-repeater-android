@@ -14,7 +14,6 @@ updates:
         patterns: ['androidx.*']
       kotlin:
         patterns: ['org.jetbrains.kotlin*']
-
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -26,12 +25,5 @@ updates:
     groups:
       github-actions:
         patterns: ['*']
-      # Dependabot treats each action in a multi-step action (e.g.
-      # github/codeql-action/init + analyze) as a separate dependency;
-      # a plain '*' group updates them independently and can push
-      # split-version commits that break the pinned-SHA contract.
       multi-step-actions:
-        patterns:
-          - 'actions/cache/*'
-          - 'github/codeql-action/*'
-          - 'gradle/actions/*'
+        patterns: ['actions/cache/*', 'github/codeql-action/*']

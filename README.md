@@ -2,16 +2,16 @@
 
 [![CI](https://github.com/patbaumgartner/spaced-repeater-android/actions/workflows/ci.yml/badge.svg)](https://github.com/patbaumgartner/spaced-repeater-android/actions/workflows/ci.yml)
 [![Security](https://github.com/patbaumgartner/spaced-repeater-android/actions/workflows/security.yml/badge.svg)](https://github.com/patbaumgartner/spaced-repeater-android/actions/workflows/security.yml)
-
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 Spaced Repeater is an Android flashcard app for studying offline with spaced
 repetition. Learners import ZIP deck packages containing Markdown question and
 answer cards, review cards when they are due, and rate how well they recalled
 each answer. The scheduler uses an Anki-style SM-2 algorithm.
 
-The app is in active development. The architecture and use-case documents
-describe the intended design; they are not a guarantee that every described
-feature is already available in a release.
+The app is in active development. The architecture documents describe the
+intended design; they are not a guarantee that every described feature is
+already available in a release.
 
 ## Current scope
 
@@ -82,7 +82,6 @@ app/src/main/       Android application and resources
 app/src/test/       JVM unit tests
 docs/adr/           Architecture decision records
 docs/arc42/         System architecture documentation
-docs/use-cases/     User workflows and scenarios
 gradle/             Wrapper and dependency version catalog
 ```
 
