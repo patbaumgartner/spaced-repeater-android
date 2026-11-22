@@ -1,6 +1,5 @@
 package com.patbaumgartner.android.spacedrepeater.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -11,6 +10,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.sp
@@ -29,10 +29,12 @@ val LocalSpacedRepeaterAccents = staticCompositionLocalOf {
 }
 
 private val LightScheme = lightColorScheme(
-    primary = BrandCyanDeep,
-    onPrimary = Color.White,
-    primaryContainer = BrandCyan,
+    primary = BrandCyan,
+    onPrimary = OnBrandCyan,
+    primaryContainer = BrandCyanLight,
     onPrimaryContainer = OnBrandCyan,
+    secondary = BrandCyanDeep,
+    onSecondary = OnBrandCyan,
     secondaryContainer = Color(0xFFD7F3FC),
     onSecondaryContainer = OnBrandCyan,
     tertiaryContainer = Color(0xFFD7F3FC),
@@ -41,20 +43,21 @@ private val LightScheme = lightColorScheme(
     outlineVariant = Color(0xFFCEDDE2),
     background = Porcelain,
     onBackground = Ink,
-    surface = PorcelainRaised,
+    surface = Porcelain,
     onSurface = Ink,
     surfaceContainerHighest = Color(0xFFE2E8E8),
-    surfaceVariant = Porcelain,
+    surfaceVariant = PorcelainRaised,
     onSurfaceVariant = InkMuted,
-    error = Coral,
-    onError = Color.White,
+    error = CoralDeep,
 )
 
 private val DarkScheme = darkColorScheme(
     primary = BrandCyan,
     onPrimary = OnBrandCyan,
-    primaryContainer = BrandCyanLight,
-    onPrimaryContainer = OnBrandCyan,
+    primaryContainer = BrandCyanDeep,
+    onPrimaryContainer = Color.White,
+    secondary = BrandCyanLight,
+    onSecondary = OnBrandCyan,
     secondaryContainer = Color(0xFF123642),
     onSecondaryContainer = BrandCyanLight,
     tertiaryContainer = Color(0xFF123642),
@@ -63,13 +66,12 @@ private val DarkScheme = darkColorScheme(
     outlineVariant = Color(0xFF3B4B51),
     background = Graphite,
     onBackground = Bone,
-    surface = GraphiteRaised,
+    surface = Graphite,
     onSurface = Bone,
     surfaceContainerHighest = Color(0xFF3B4B51),
     surfaceVariant = GraphiteRaised,
     onSurfaceVariant = BoneMuted,
     error = CoralLight,
-    onError = OnBrandCyan,
 )
 
 private val Trim = LineHeightStyle(
@@ -77,7 +79,7 @@ private val Trim = LineHeightStyle(
     trim = LineHeightStyle.Trim.None,
 )
 
-private fun typography(family: androidx.compose.ui.text.font.FontFamily) = Typography(
+private fun typography(family: FontFamily) = Typography(
     displayLarge = TextStyle(
         fontFamily = family,
         fontWeight = FontWeight.Light,
@@ -127,7 +129,7 @@ private fun typography(family: androidx.compose.ui.text.font.FontFamily) = Typog
 
 @Composable
 fun SpacedRepeaterTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = androidx.compose.foundation.isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
     val accents = if (darkTheme) {
