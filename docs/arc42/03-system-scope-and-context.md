@@ -37,11 +37,12 @@ flowchart LR
     Sched --> Room
     UI --> Room
     UI -->|image decode| Media
-    NC[NotificationManager] <-->|schedule / post| Rem[ReviewReminderService]
-    Rem --> Sched
+    WM[WorkManager] -->|run at due time| Rem[ReviewReminderWorker]
+    Rem -->|post when enabled and due| NC[NotificationManager]
+    Rem --> Room
 ```
 
-- **Storage Access Framework (SAF)** — deck archive selection; no storage permission needed on API 33+, `READ_EXTERNAL_STORAGE` only on API < 33.
+- **Storage Access Framework (SAF)** — deck archive selection through a system-provided `content://` URI; no broad storage permission is needed on any supported API level.
 - **NotificationManager / WorkManager** — reminder scheduling and delivery.
 - **File system (app-private)** — extracted media images.
 

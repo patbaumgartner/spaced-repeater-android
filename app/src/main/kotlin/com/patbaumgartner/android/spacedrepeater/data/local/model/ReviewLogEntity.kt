@@ -27,6 +27,11 @@ data class ReviewLogEntity(
     val interval: Int,
     val easeFactor: Float,
     val timeTakenMs: Long = 0L,
-    /** Card phase before this review was applied; NEW marks a first-time introduction. */
+    /**
+     * Card phase before this review for newly recorded rows; NEW marks an introduction.
+     * Migrated v1 history is lossy: only the earliest row per card is NEW, while
+     * later REVIEW values are non-NEW budget sentinels, not exact historical
+     * LEARNING/RELEARNING phases or replay state.
+     */
     val previousPhase: String = CardPhase.NEW.name,
 )

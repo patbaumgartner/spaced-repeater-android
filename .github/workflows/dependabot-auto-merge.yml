@@ -30,12 +30,75 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Only queues the merge. Branch protection holds it until the required
-      # checks pass, which is also what lets GITHUB_TOKEN merge PRs that touch
-      # .github/workflows/** -- a direct merge there is rejected.
+      - name: Verify update is patch or minor
+        env:
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+        run: |
+          set -euo pipefail
+          case "$UPDATE_TYPE" in
+            version-update:semver-patch|version-update:semver-minor)
+              echo "Eligible Dependabot update: $UPDATE_TYPE"
+              ;;
+            *)
+              echo "::error::Auto-merge requires semver-patch or semver-minor, got '${UPDATE_TYPE:-empty}'."
+              exit 1
+              ;;
+          esac
+
+      # Fail closed using only metadata-readable rules effective on main. This
+      # deliberately has no checkout, classic-protection, or ruleset-detail call.
+      - name: Verify required merge protection
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REQUIRED_CHECK: Test, lint, and package
+          BRANCH_RULES_PREDICATE: |
+            add
+            | any(.[]?;
+                .type == "required_status_checks"
+                and ([.parameters.required_status_checks[]?.context] | index($required) != null)
+              )
+        run: |
+          set -euo pipefail
+
+          branch_rules="$RUNNER_TEMP/branch-main-rules.json"
+          if ! gh api --paginate --slurp \
+            "repos/$GITHUB_REPOSITORY/rules/branches/main?per_page=100" > "$branch_rules"; then
+            echo "::error::Could not read main branch rules; refusing auto-merge."
+            exit 1
+          fi
+          if ! jq -e --arg required "$REQUIRED_CHECK" "$BRANCH_RULES_PREDICATE" \
+            "$branch_rules" > /dev/null; then
+            echo "::error::Main branch rules do not require $REQUIRED_CHECK; refusing auto-merge."
+            exit 1
+          fi
+          echo "Main branch rules require $REQUIRED_CHECK."
+
+      # Only queues the merge; branch protection holds it until checks pass.
+      # The dedicated token is used only for merging so the resulting main push
+      # triggers post-merge CI and Snapshot publication.
+      - name: Verify auto-merge token
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          AUTO_MERGE_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AUTO_MERGE_TOKEN:-}" ]; then
+            echo "::error::AUTO_MERGE_TOKEN is not set or is empty."
+            echo "::error::Configure Contents, Pull requests, and Workflows write access."
+            echo "::error::See CONTRIBUTING.md#dependabot-auto-merge-token for setup."
+            exit 1
+          fi
+
       - name: Enable auto-merge for patch and minor updates
-        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: gh pr merge --auto --rebase "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN }}

@@ -31,7 +31,7 @@ The scheduler is a pure function `(CardState, ReviewRating) → CardSchedule` wi
 
 ```mermaid
 flowchart TD
-    R{Rating} -->|Again 0| Lapse[repetitions = 0<br/>interval = 1 day<br/>EF decreases, floor 1.3<br/>phase = RELARNING]
+    R{Rating} -->|Again 0| Lapse[repetitions = 0<br/>interval = 1 day<br/>EF decreases, floor 1.3<br/>phase = RELEARNING]
     R -->|Hard 1| H[EF −0.15<br/>interval: graduate = 6 d<br/>else previous × EF]
     R -->|Good 2| G[EF unchanged<br/>interval: 1 → 6 → previous × EF]
     R -->|Easy 3| E[EF +0.15<br/>interval × 1.3 bonus]

@@ -27,15 +27,15 @@ flowchart TD
     Priv --> P3[No logging of card content in release]
 
     Offline --> O1[Local-first data]
-    Offline --> O2[SAF import without permissions API 33+]
+    Offline --> O2[SAF import without broad storage permission]
 
     Correctness --> C1[Pure scheduler, JVM-tested]
     Correctness --> C2[Atomic rating transactions]
 
     Perf --> PF1[< 100 ms rating latency]
-    PF2[Flow-driven UI, no polling]
+    Perf --> PF2[Flow-driven UI plus 30-second due-clock refresh]
 
-    Maint --> M1[Framework-free domain layer]
+    Maint --> M1[Framework-free domain models and scheduler]
     Maint --> M2[CI: lint, tests, build]
 ```
 

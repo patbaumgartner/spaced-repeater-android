@@ -17,7 +17,7 @@ Reminders are best-effort, not mission-critical: a missed notification costs not
 
 ## Decision
 
-Use **WorkManager** to schedule one-time review reminders. After each session, `ReviewReminderService` computes the next due timestamp and enqueues a `OneTimeWorkRequest` with the corresponding delay. The worker queries the due count and posts a notification only if `POST_NOTIFICATIONS` is granted and cards are actually due.
+Use **WorkManager** to schedule one-time review reminders. After each session, `StudyViewModel` obtains the next due timestamp and `ReviewReminderService` enqueues a `OneTimeWorkRequest` with the corresponding delay. The worker re-checks the reminders preference and due count, then posts only when notifications are permitted: `POST_NOTIFICATIONS` must be granted on API 33+, while older versions need no runtime notification permission.
 
 ```mermaid
 sequenceDiagram
@@ -27,8 +27,8 @@ sequenceDiagram
     participant N as NotificationManager
     S->>WM: enqueue(delay = nextDueAt - now)
     WM->>W: fire at due time
-    W->>W: query due cards
-    alt due > 0 and permission granted
+    W->>W: check preference, due cards, and API-level permission
+    alt enabled and due > 0 and notifications permitted
         W->>N: post "N cards due"
     end
 ```

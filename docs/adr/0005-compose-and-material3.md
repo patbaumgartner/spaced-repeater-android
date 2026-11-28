@@ -12,11 +12,14 @@ The app needs three screens (Home, Study, Import), a full-screen flashcard exper
 2. **XML Views** — legacy, imperative, more boilerplate.
 3. **Compose + Material 2** — older component set.
 
-Constraints: Compose BOM 2026.09.00, Kotlin 2.4.20, single-activity navigation, system-aware themes, transparent system bars.
+Constraints at decision time: Compose BOM 2026.09.00, Kotlin 2.4.20,
+single-activity navigation, system-aware themes, transparent system bars. The
+current dependency catalog tracks the resolved Compose/Kotlin upgrades without
+changing this design decision.
 
 ## Decision
 
-Build the entire UI with **Jetpack Compose and Material 3**, in a single `MainActivity` with Compose Navigation. The watchdog design language is ported into a Compose theme (`ui/theme/`: `Color.kt`, `Font.kt` with Manrope, `Theme.kt`). Reusable pieces — `FlashcardView`, `RatingButtons` — live in `ui/components/`.
+Build the entire UI with **Jetpack Compose and Material 3**, in a single `MainActivity` with Compose Navigation. The watchdog design language is ported into a Compose theme (`ui/theme/`: `Color.kt`, `Font.kt` with Manrope, `Theme.kt`). Reusable card rendering and common UI pieces live in `ui/CardContent.kt` and `ui/UiCommon.kt`.
 
 ## Consequences
 

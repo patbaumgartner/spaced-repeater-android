@@ -2,7 +2,7 @@
 
 ## 8.1 Domain Primacy
 
-Business rules live in `domain/` as pure Kotlin. The SM-2 scheduler and Markdown parser have **zero Android dependencies**, so the correctness-critical core runs in fast JVM unit tests. Data and UI layers adapt to the domain, never the reverse.
+Domain models live in `domain/model/`; the SM-2 scheduler and Markdown parser live under `data/` but remain pure Kotlin with **zero Android dependencies**. The correctness-critical core therefore runs in fast JVM unit tests. Data and UI layers adapt to the domain, never the reverse.
 
 ## 8.2 State & Data Flow
 
@@ -26,8 +26,8 @@ flowchart LR
 | Operation | Transaction boundary |
 |-----------|---------------------|
 | Import | One transaction: deck + all cards + initial states. |
-| Rating | One transaction: card-state update + review-log insert + undo snapshot. |
-| Undo | One transaction: restore snapshot + delete log entry. |
+| Rating | Read the pre-review snapshot, then one transaction: card-state update + review-log insert. |
+| Undo | One transaction: restore the retained snapshot + delete log entry. |
 
 Partial states are never visible: a crash mid-import leaves no half-imported deck.
 
@@ -68,6 +68,6 @@ Partial states are never visible: a crash mid-import leaves no half-imported dec
 | Stats integration | `SampleDeckStatsIntegrationTest`: full import → rate cards → verify streak/retention | In-memory Room on emulator; uses the Dropbox sample ZIP |
 | DAO (instrumented) | Room DAOs on real SQLite (joins, FK cascades, flows) | In-memory Room DB under `app/src/androidTest/`, run on an emulator |
 | UI | Study session flow, import flow | Compose UI tests (`StudyScreenUiTest`, `ImportScreenUiTest`): real screens + ViewModels over in-memory Room and the real importer; SAF picker bypassed by handing the archive Uri to the ViewModel |
-| CI | Lint + tests + debug build per push; instrumented tests on an emulator | GitHub Actions, matching watchdog workflows |
+| CI | Lint + JVM tests + debug/release assembly; instrumented tests on an emulator; aggregate verification | GitHub Actions; required contexts documented in CONTRIBUTING |
 
 Scheduler tests must cover: fresh card, learning steps (1 min → 10 min → graduate), ease floor at 1.3, Easy bonus, lapse resets, and interval rounding.

@@ -30,12 +30,18 @@ Signed builds are published on the
 [Releases](https://github.com/patbaumgartner/spaced-repeater-android/releases)
 page:
 
-- **Releases** (`vX.Y.Z` tags): signed APK and AAB, plus `SHA256SUMS` and the
-  signer certificate fingerprint in the release notes.
-- **Snapshot** (prerelease, rebuilt on every push to `main`): the latest
-  signed APK for testing.
+- **Releases** (`vX.Y.Z` tags): signed universal APK and AAB, plus `SHA256SUMS`
+  and the signer certificate fingerprint in the release notes.
+- **Snapshot** (prerelease, rebuilt on every push to `main`): the latest signed
+  universal APK and `SHA256SUMS` for testing.
 
-Both use the same release key, so they install over each other as updates.
+Both use the same release key. A newer Snapshot installs over a stable release,
+but Android blocks direct Snapshot → Stable installation as a downgrade.
+Switching channels with myApps is manual-only and shows a data-loss warning; it
+does not automatically uninstall the app. If you choose to uninstall and
+reinstall during a manual switch, local decks, settings, and review history can
+be lost.
+
 Verify a download against `SHA256SUMS` before installing. Sideloading on
 Android 8+ requires allowing "Install unknown apps" for the app you open the
 APK with.
@@ -44,7 +50,11 @@ APK with.
 
 - Android 8.0 (API 26) or newer
 - JDK 27
-- Android SDK 37
+- Android SDK Platform 37.1
+
+Full validation additionally requires Python 3 with PyYAML
+(`python3 -c 'import yaml'`), `jq`, `yamllint`, and ShellCheck. None of the
+current validation scripts uses Node.
 
 Gradle needs the Android SDK path from `ANDROID_HOME` or an `sdk.dir` entry in
 `local.properties`. The first build downloads the Gradle distribution and
@@ -59,10 +69,15 @@ export ANDROID_HOME="$HOME/Android/Sdk"
 ./gradlew :app:assembleDebug
 ```
 
-Run the same build and test gates as CI:
+Run the full local build, package, and preflight gates:
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew assembleDebugAndroidTest
+./gradlew bundleRelease
+./scripts/test-dependabot-ruleset.sh
+./scripts/test-dependabot-update-type.sh
+./scripts/test-release-workflow.sh
 yamllint .
 find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
 git diff --check
@@ -85,7 +100,8 @@ docs/arc42/         System architecture documentation
 gradle/             Wrapper and dependency version catalog
 ```
 
-See [docs/README.md](docs/README.md) for the documentation index,
+See [docs/architecture.md](docs/architecture.md) for the implemented
+architecture, [docs/README.md](docs/README.md) for the documentation index,
 [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, and
 [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
@@ -99,4 +115,5 @@ Settings shows the app version, open-source notices, and author information.
 
 Spaced Repeater is licensed under the [Apache License 2.0](LICENSE). The bundled
 Manrope typeface is licensed under the SIL Open Font License 1.1; see the
-license notice in Settings.
+license notice in Settings. Project and dependency attribution is recorded in
+[NOTICE](NOTICE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

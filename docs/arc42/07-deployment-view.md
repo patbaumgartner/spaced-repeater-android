@@ -31,7 +31,7 @@ flowchart LR
 | App process (background) | ReviewReminderService via WorkManager | Work requests survive process death and reboots. |
 | `databases/` (app-private) | Room database | Only writable location for structured data. |
 | `files/media/` (app-private) | Imported images | Referenced by cards; removed with deck deletion. |
-| Cache dir (temp) | Import extraction staging | Cleared after import; safe to lose. |
+| `files/media/.staging-*` | Import extraction staging | Removed after import; only completed deck directories remain. |
 
 ## 7.3 Build Variants
 

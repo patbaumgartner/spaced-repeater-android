@@ -18,10 +18,10 @@ sequenceDiagram
     S->>SAF: Launch picker (.zip)
     SAF-->>S: content:// Uri
     S->>VM: onArchiveSelected(uri)
-    VM->>Imp: import(uri)
-    Imp->>Imp: Stream ZIP → temp dir
-    Imp->>Imp: Validate deck.json
-    Imp-->>VM: Preview {name, cardCount, validCards}
+    VM->>Imp: readPreview(uri)
+    Imp->>Imp: Stream ZIP (no media extraction)
+    Imp->>Imp: Validate deck.json + count card files
+    Imp-->>VM: Preview {name, declaredCardCount, actualCardCount}
     VM-->>S: Show preview
     L->>S: Confirm
     Imp->>DB: Transaction: deck + cards + initial states
@@ -57,17 +57,19 @@ sequenceDiagram
 
     L->>SS: Tap rating (e.g. Good)
     SS->>SVM: rate(cardId, GOOD)
-    SVM->>SM2: calculateNextReview(state, GOOD)
-    SM2-->>SVM: CardSchedule {interval, EF, dueDate, next}
-    SVM->>DB: Transaction {update CardState, insert ReviewLog, snapshot for undo}
-    DB-->>SVM: Committed
+    SVM->>Repo: rate(cardId, GOOD)
+    Repo->>SM2: calculateNextReview(state, GOOD)
+    SM2-->>Repo: CardSchedule {interval, EF, dueAt, nextPhase}
+    Repo->>DB: Transaction {update CardState, insert ReviewLog}
+    DB-->>Repo: Committed
+    Repo-->>SVM: ReviewResult + pre-review snapshot
     SVM-->>SS: Next due card (or session complete)
 ```
 
 Key properties:
 
 - The rating transaction is atomic — state update and review log commit together ([data durability](10-quality-requirements.md)).
-- Undo uses the pre-review snapshot written inside the same transaction ([UC-05](../use-cases/use-cases.md#uc-05-undo-review)).
+- Undo retains the pre-review snapshot read before the rating transaction; restoring it and deleting its log entry use a second transaction ([UC-05](../use-cases/use-cases.md#uc-05-undo-review)).
 - Scheduler runs on the JVM with no framework dependency; the same code path is unit tested.
 
 ## 6.3 Review Reminder

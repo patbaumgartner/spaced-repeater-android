@@ -1,5 +1,11 @@
 # Implementation Plan
 
+> **Historical plan, reviewed 2026-11-27.** The dated "Done" entries below are
+> retained as implementation history, including their original version numbers
+> and test counts. Current toolchain, scope (UC-01–UC-08), and architecture are
+> documented in [docs/architecture.md](docs/architecture.md) and the version
+> catalog; later audits are appended to [AUDIT-FINDINGS.md](AUDIT-FINDINGS.md).
+
 ## Goal
 Implement the spaced-repeater-android app end-to-end to match the documented design in `docs/adr/`, `docs/arc42/`, `docs/use-cases/`, referencing `/home/patbaumgartner/GitHub/patbaumgartner/public/esp32-room-watchdog-android` for style.
 

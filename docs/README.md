@@ -5,8 +5,12 @@ workflows.
 
 ## Architecture
 
+Start with [Architecture at a glance](architecture.md) for the implemented
+package map, offline data flow, import boundaries, migrations, reminders, and
+build/check topology.
+
 The [arc42 documentation](arc42/README.md) describes the system context,
-architecture, runtime behavior, quality goals, and risks.
+architecture, runtime behavior, quality goals, and risks in more detail.
 
 ## User workflows
 

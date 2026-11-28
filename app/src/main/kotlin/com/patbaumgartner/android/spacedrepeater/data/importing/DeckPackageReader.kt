@@ -27,7 +27,7 @@ object DeckPackageReader {
     /** Cumulative uncompressed cap across ALL entries — guards against zip bombs. */
     const val MAX_TOTAL_BYTES = 200L * 1024 * 1024
 
-    /** Maximum number of file entries accepted in one archive. */
+    /** Maximum number of ZIP entries, including directories, accepted in one archive. */
     const val MAX_ENTRIES = 10_000
 
     private val SAFE_MEDIA_NAME = Regex("[A-Za-z0-9][A-Za-z0-9._-]*\\.(png|jpe?g|webp|gif)", RegexOption.IGNORE_CASE)
@@ -92,11 +92,11 @@ object DeckPackageReader {
                 // check, and deck.json / cards/*.md entries are read into memory,
                 // never resolved against the file system.
                 val name = entry.name.removePrefix("./")
+                entryCount++
+                if (entryCount > maxEntries) {
+                    throw ImportException("Archive has more than $maxEntries entries")
+                }
                 if (!entry.isDirectory) {
-                    entryCount++
-                    if (entryCount > maxEntries) {
-                        throw ImportException("Archive has more than $maxEntries entries")
-                    }
                     when {
                         name == "deck.json" -> manifest = zip.readText(name)
                         name.startsWith("cards/") && name.endsWith(".md") -> cards[name] = zip.readText(name)
@@ -123,6 +123,10 @@ object DeckPackageReader {
                         }
                         else -> zip.drainCounted()
                     }
+                } else {
+                    // Directory names can still carry expanded data. Drain and
+                    // account for it instead of letting nextEntry skip it uncounted.
+                    zip.drainCounted()
                 }
                 entry = zip.nextEntry
             }

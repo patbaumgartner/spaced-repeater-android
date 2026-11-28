@@ -130,6 +130,53 @@ class DeckPackageReaderTest {
     }
 
     @Test
+    fun directoryEntriesCountTowardEntryLimit() {
+        val archive = zip(
+            "deck.json" to "{}".toByteArray(),
+            "empty/one/" to ByteArray(0),
+            "empty/two/" to ByteArray(0),
+        )
+
+        try {
+            DeckPackageReader.read(
+                ByteArrayInputStream(archive),
+                tmp.newFolder("staging"),
+                maxEntries = 2,
+            )
+            assertTrue("expected ImportException for too many entries", false)
+        } catch (e: ImportException) {
+            assertTrue(e.message!!.contains("more than 2 entries"))
+        }
+    }
+
+    @Test
+    fun directoryEntryPayloadCountsTowardTotalSize() {
+        val archive = zip("bomb/" to ByteArray(2))
+
+        try {
+            DeckPackageReader.read(
+                ByteArrayInputStream(archive),
+                mediaDir = null,
+                maxTotalBytes = 1,
+            )
+            assertTrue("expected ImportException for directory-entry payload", false)
+        } catch (e: ImportException) {
+            assertTrue(e.message!!.contains("zip-bomb guard"))
+        }
+    }
+
+    @Test
+    fun emptyDirectoriesAreAccepted() {
+        val archive = zip("empty/" to ByteArray(0))
+
+        val pkg = DeckPackageReader.read(ByteArrayInputStream(archive), mediaDir = null)
+
+        assertNull(pkg.manifestJson)
+        assertTrue(pkg.cards.isEmpty())
+        assertTrue(pkg.mediaFiles.isEmpty())
+    }
+
+    @Test
     fun totalSizeGuardCountsAllBytes() {
         val dir = tmp.newFolder("staging")
         // Each media entry is under its own per-entry cap, but together they exceed

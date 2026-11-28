@@ -5,6 +5,22 @@ All notable changes are documented here. The project follows
 
 ## Unreleased
 
+### Changed
+
+- Java and Kotlin bytecode now targets 17 while builds continue to use JDK 27.
+- CI's required `Test, lint, and package` context is now an aggregate of the
+  build/unit-test and instrumented jobs; Dependabot auto-merge verifies the
+  corresponding hosted protection before it is enabled.
+
+### Fixed
+
+- Added an explicit Room v1→v2 migration and removed destructive fallback so
+  upgrades retain offline decks, scheduling state, and review history.
+- Review reminders no longer require the nonexistent runtime notification
+  permission on Android 8–12; API 33+ still requires `POST_NOTIFICATIONS`.
+- ZIP entry limits now include directories, closing an empty-directory bypass
+  of the archive entry cap.
+
 ## [0.2.0] - 2026-11-16
 
 ### Changed

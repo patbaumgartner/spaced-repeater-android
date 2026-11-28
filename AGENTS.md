@@ -2,16 +2,24 @@
 
 Spaced Repeater is an offline-first Android flashcard app. Start with
 [README.md](README.md) for project setup,
-[docs/README.md](docs/README.md) for the architecture and scope, and
+[docs/architecture.md](docs/architecture.md) for the implemented architecture,
+[docs/README.md](docs/README.md) for the full documentation index, and
 [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow.
 
 ## Build and validate
 
-Use JDK 27 and Android SDK 37. Gradle needs the SDK location from
-`ANDROID_HOME` or `sdk.dir` in `local.properties`.
+Use JDK 27 and Android SDK Platform 37.1. Gradle needs the SDK location from
+`ANDROID_HOME` or `sdk.dir` in `local.properties`. Full validation also requires
+Python 3 with PyYAML (`python3 -c 'import yaml'`), `jq`, `yamllint`, and
+ShellCheck. Current validation scripts do not use Node.
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew assembleDebugAndroidTest
+./gradlew bundleRelease
+./scripts/test-dependabot-ruleset.sh
+./scripts/test-dependabot-update-type.sh
+./scripts/test-release-workflow.sh
 yamllint .
 find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
 git diff --check

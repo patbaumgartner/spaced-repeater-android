@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                     ) { /* Granting is optional; reminders simply do not post (UC-07 3a). */ }
                     LaunchedEffect(remindersEnabled) {
                         // Only ask for notification permission while reminders are enabled (UC-07).
-                        @Suppress("NewApi") // TIRAMISU is API 31; the check guards a permissions request, not a feature check.
+                        @Suppress("NewApi") // TIRAMISU is API 33; the SDK check guards the permission request.
                         if (remindersEnabled &&
                             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
