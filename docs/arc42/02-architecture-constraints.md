@@ -4,8 +4,8 @@
 
 | Constraint | Consequence |
 |------------|-------------|
-| Kotlin 2.4.21, AGP 9.4.1, Compose BOM 2026.09.00, Material 3 | Modern Android stack; Jetpack Compose is the only UI toolkit. |
-| minSdk 26 (Android 8.0), target/compileSdk 37 | Java 8+ APIs available (incl. `java.time`); notification runtime permission must be handled. |
+| JDK 27, Java/Kotlin bytecode 17, Kotlin 2.4.21, AGP 9.5.2, Compose BOM 2026.11.01, Material 3 | Modern Android stack; Jetpack Compose is the only UI toolkit. |
+| minSdk 26 (Android 8.0), targetSdk 37, compileSdk 37.1 | `java.time` is available; notification runtime permission applies only on API 33+. |
 | Single Activity, Compose Navigation | No fragment management; screen state lives in ViewModels. |
 | Room as sole persistence layer | All scheduling state must fit a relational model; migrations required for schema changes. |
 | Package `com.patbaumgartner.android.spacedrepeater` | Fixed namespace, aligned with the watchdog reference project. |
@@ -22,5 +22,5 @@
 ## Development Conventions
 
 - Kotlin code style: official Kotlin coding conventions.
-- CI runs lint, unit tests, and a debug build on every push.
+- CI runs lint, unit tests, debug/release assembly, and emulator instrumentation; the required aggregate fails if either build or instrumentation fails.
 - Docs live in `docs/`; decisions in `docs/adr/` (one numbered file per decision).

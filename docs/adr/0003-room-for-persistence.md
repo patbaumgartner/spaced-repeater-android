@@ -30,5 +30,6 @@ Use **Room** as the sole persistence layer with four tables — `Deck`, `Card`, 
 
 **Negative**
 
-- Schema changes require explicit migrations.
+- Schema changes require explicit migrations; v1→v2 is covered by `MIGRATION_1_2`, and destructive fallback is not enabled.
+- v1 lacked per-review phase history, so its migration preserves data but cannot reconstruct exact `LEARNING`/`RELEARNING` sequences. Only the earliest review is `NEW`; later `REVIEW` values are non-NEW new-card-budget sentinels, not replay state.
 - Relational shape forces minor modeling compromises (e.g. tags stored comma-separated today — see [technical debt](../arc42/11-risks-and-technical-debt.md)).

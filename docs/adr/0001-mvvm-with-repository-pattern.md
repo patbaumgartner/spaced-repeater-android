@@ -19,9 +19,9 @@ Constraints: single Activity with Compose navigation, reactive data from Room, a
 Adopt **MVVM with the Repository pattern**:
 
 - Screens (`HomeScreen`, `StudyScreen`, `ImportScreen`) render state and forward user intents; no logic.
-- ViewModels hold screen state as `StateFlow` and orchestrate use cases via repositories and the pure `SM2Scheduler`.
-- Repositories are the single source of truth, wrapping Room DAOs and owning transaction boundaries.
-- Domain models and the scheduler live in a framework-free `domain/` layer.
+- ViewModels hold screen state as `StateFlow` and orchestrate use cases via repositories.
+- Repositories are the single source of truth, wrapping Room DAOs, invoking the pure `SM2Scheduler`, and owning transaction boundaries.
+- Domain models live in `domain/model/`; the scheduler remains framework-free under `data/scheduler/`.
 
 ```mermaid
 flowchart LR
@@ -29,7 +29,7 @@ flowchart LR
     VM -->|StateFlow| UI
     VM -->|suspend / Flow| Repo[Repository]
     Repo --> DB[(Room)]
-    VM --> SM2[SM2Scheduler]
+    Repo --> SM2[SM2Scheduler]
 ```
 
 ## Consequences

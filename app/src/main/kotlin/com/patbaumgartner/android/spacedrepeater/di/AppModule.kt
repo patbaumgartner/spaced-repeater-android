@@ -8,6 +8,7 @@ import com.patbaumgartner.android.spacedrepeater.data.importing.DeckImporter
 import com.patbaumgartner.android.spacedrepeater.data.importing.DeckMediaStore
 import com.patbaumgartner.android.spacedrepeater.data.importing.MarkdownParser
 import com.patbaumgartner.android.spacedrepeater.data.local.DbTransaction
+import com.patbaumgartner.android.spacedrepeater.data.local.MIGRATION_1_2
 import com.patbaumgartner.android.spacedrepeater.data.local.SpacedRepeaterDatabase
 import com.patbaumgartner.android.spacedrepeater.data.local.roomDbTransaction
 import com.patbaumgartner.android.spacedrepeater.data.repository.CardRepository
@@ -31,7 +32,7 @@ object AppModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): SpacedRepeaterDatabase =
         Room.databaseBuilder(context, SpacedRepeaterDatabase::class.java, "spaced_repeater.db")
-            .fallbackToDestructiveMigration(dropAllTables = true)
+            .addMigrations(MIGRATION_1_2)
             .build()
 
     @Provides

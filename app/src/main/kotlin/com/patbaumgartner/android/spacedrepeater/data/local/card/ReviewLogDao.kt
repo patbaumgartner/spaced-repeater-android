@@ -36,7 +36,9 @@ interface ReviewLogDao {
      * Number of distinct cards introduced today, i.e. cards whose first review
      * happened inside the [startOfToday, startOfTomorrow) window. Counts each
      * card once regardless of how many NEW-phase reviews it received that day
-     * (a 1-minute learning step must not consume the budget twice).
+     * (a 1-minute learning step must not consume the budget twice). For migrated
+     * v1 rows, only NEW versus non-NEW is meaningful; later REVIEW sentinels are
+     * not exact historical phases and are not used for scheduling or replay.
      */
     @Query(
         """

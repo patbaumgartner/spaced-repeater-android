@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
@@ -50,6 +51,10 @@ class ReviewReminderService(
     }
 }
 
+/** POST_NOTIFICATIONS does not exist before API 33; older versions need no runtime grant. */
+internal fun notificationPermissionSatisfied(sdkInt: Int, permissionResult: Int): Boolean =
+    sdkInt < Build.VERSION_CODES.TIRAMISU || permissionResult == PackageManager.PERMISSION_GRANTED
+
 @HiltWorker
 class ReviewReminderWorker @AssistedInject constructor(
     @Assisted context: Context,
@@ -70,9 +75,10 @@ class ReviewReminderWorker @AssistedInject constructor(
     }
 
     @Suppress("InlinedApi")
-    private fun hasPermission(): Boolean =
-        ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
+    private fun hasPermission(): Boolean = notificationPermissionSatisfied(
+        sdkInt = Build.VERSION.SDK_INT,
+        permissionResult = ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS),
+    )
 
     private fun postNotification(dueCount: Int) {
         val channelId = "review_reminders"

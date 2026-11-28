@@ -75,12 +75,16 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_26
-        targetCompatibility = JavaVersion.VERSION_26
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     packaging {
         resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
+    }
+
+    sourceSets {
+        getByName("androidTest").assets.directories += "$projectDir/schemas"
     }
 
     ksp {
@@ -90,7 +94,7 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_26)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
@@ -135,4 +139,5 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.uiautomator)
     androidTestImplementation(libs.work.testing)
+    androidTestImplementation(libs.room.testing)
 }

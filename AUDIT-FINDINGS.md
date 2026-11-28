@@ -1,7 +1,11 @@
 # Spaced Repeater — Maintainer Audit Findings Ledger
 
+> The original findings and validation results below are historical evidence,
+> not a claim that they were rerun on every later commit. Follow-up audit
+> results are appended at the end of this ledger.
+
 Scope: docs/arc42, docs/adr, docs/use-cases (UC-01–08), main source, tests, CI.
-Authority mode: working tree only (no commit/push). JDK 27 + Android SDK 37.
+Authority mode: working tree only (no commit/push). JDK 27 + Android SDK Platform 37.1.
 Baseline gate (pre-change): `./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease` = PASS, `yamllint .` = PASS, `git diff --check` = PASS.
 
 Dispositions: FIXED / NOT-A-DEFECT / RESIDUAL-RISK / REQUIRES-MAINTAINER.
@@ -120,3 +124,111 @@ Dispositions: FIXED / NOT-A-DEFECT / RESIDUAL-RISK / REQUIRES-MAINTAINER.
 `./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease` + `yamllint .` + `git diff --check`.
 
 **Result: PASS.** `BUILD SUCCESSFUL in 17m 38s` — `testDebugUnitTest` (all suites 0 failures/errors, incl. new `FixtureDeckEndToEndTest`, `DeckPackageReaderTest` zip-bomb tests, `SettingsViewModelTest` cancel test), `lintDebug`, `assembleDebug`, `assembleRelease`, `assembleDebugAndroidTest` all green. `yamllint .` exit 0. `git diff --check` clean.
+
+---
+
+# Follow-up audit — 2026-11-27
+
+Scope: Java/Kotlin bytecode alignment, CI aggregation, Dependabot protection,
+third-party notices, architecture documentation, ZIP boundaries, SM-2, Room
+migrations, and reminders. Working tree only; no hosted rules, releases, or
+physical-device state was changed.
+
+## New confirmed findings
+
+### (11) Room could destructively replace a v1 database
+
+**Status:** FIXED (JVM/build verification complete; emulator execution pending)
+
+**Evidence:** `AppModule.provideDatabase()` enabled
+`fallbackToDestructiveMigration(dropAllTables = true)` while schema 2 adds the
+required `review_log.previousPhase` column. An upgrade without a migration could
+discard offline decks, cards, states, and review history.
+
+**Fix:** Added `MIGRATION_1_2`, registered it explicitly, and removed destructive
+fallback. The migration preserves every existing row, marks each card's earliest
+historical review as `NEW`, and marks later historical rows as `REVIEW` for
+new-card-budget accounting. This is intentionally lossy: later `REVIEW` values
+are non-NEW sentinels, not exact `LEARNING`/`RELEARNING` history or replay state.
+Schemas 1 and 2 are unchanged. Added
+`DatabaseMigrationTest` with `MigrationTestHelper`, real v1 rows, schema
+validation, and preservation/backfill assertions; exported schemas are packaged
+as androidTest assets.
+
+### (12) Reminder permission check blocked Android 8–12
+
+**Status:** FIXED
+
+**Evidence:** `ReviewReminderWorker.hasPermission()` required
+`POST_NOTIFICATIONS` at every API level, although that runtime permission only
+exists on API 33+. On older supported versions, a denied result for the unknown
+permission prevented notification delivery even though no runtime grant is
+required.
+
+**Fix:** `notificationPermissionSatisfied()` accepts pre-33 devices without a
+runtime grant and retains the explicit grant check on API 33+.
+`ReviewReminderPermissionTest` covers pre-33 denial, API 33 denial, and API 33
+grant paths.
+
+### (13) Directory entries bypassed the ZIP entry cap
+
+**Status:** FIXED
+
+**Evidence:** `DeckPackageReader` incremented `entryCount` only for non-directory
+entries, so an archive containing unlimited empty directories bypassed the
+10,000-entry resource bound.
+
+**Fix:** Count every ZIP entry before branching on `entry.isDirectory`. Added
+`directoryEntriesCountTowardEntryLimit`, which verifies that directories consume
+the configured cap.
+
+## Reviewed without a new defect disposition
+
+- `SM2Scheduler`: existing learning/review/relearning, ease-floor, Easy-bonus,
+  lapse, rounding, and golden interval tests all pass. No scheduler behavior was
+  changed in this follow-up.
+- Existing ZIP path containment, media allowlist, per-entry limits, cumulative
+  expanded-size accounting (including discarded entries), and media-root render
+  containment remain intact.
+- Reminder opt-out/cancellation and real-next-due scheduling remain intact.
+- The active hosted `protect-main` ruleset was inspected with read-only `gh api`
+  calls: it targets `refs/heads/main`, requires `Test, lint, and package`,
+  `Instrumented tests (emulator)`, and `CodeQL`, and enables strict up-to-date
+  checks. The main commit reported zero hosted check runs; this is merge policy,
+  not passing-check evidence.
+
+## Validation evidence
+
+- Focused `DeckPackageReaderTest`, `ReviewReminderPermissionTest`, and
+  `SM2SchedulerTest`, plus `assembleDebugAndroidTest`: **PASS**
+  (`BUILD SUCCESSFUL in 1m 3s`).
+- Full JVM suite: **PASS — 71 tests, 0 failures, 0 errors, 0 skipped**.
+- `./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleRelease`:
+  **PASS** (`BUILD SUCCESSFUL in 59s`).
+- Separate `./gradlew --no-daemon assembleDebugAndroidTest`: **PASS**
+  (`BUILD SUCCESSFUL in 14s`).
+- `./gradlew --no-daemon bundleRelease`: **PASS** (`BUILD SUCCESSFUL in 13s`).
+- `yamllint .`: **PASS**. Repository ShellCheck command: **PASS**.
+  `git diff --check`: **PASS** (rechecked after ledger update).
+- Java bytecode check: **PASS**, class major version 61 (Java 17).
+- Extracted CI aggregate shell: **PASS** for success/success; failure injection
+  correctly rejected a failed build and failed instrumentation.
+- Extracted Dependabot guard using read-only API calls: **PASS** against active
+  ruleset 27844699; a nonexistent required check was rejected closed as expected.
+- An initial combined five-task Gradle invocation: **FAIL** in lint's generated
+  Hilt-source analysis race (not a source lint finding). Standalone `lintDebug`
+  then passed in 23s, followed by the documented gate and separate androidTest
+  assembly above. No lint check was suppressed.
+- `connectedDebugAndroidTest` and the new emulator migration test: **NOT RUN**.
+  Physical-device actions were prohibited; compilation/assembly is not runtime
+  evidence. Hosted CI, CodeQL, signed publication, and release/snapshot creation:
+  **NOT RUN**.
+
+## Residual device and release risks
+
+Room v1→v2 schema validation and row preservation still require the emulator CI
+run. Notification delivery needs API 26/32 and API 33+ runtime coverage,
+including denied/revoked permission and app-level notification settings;
+WorkManager delivery remains subject to OEM background policies. Signed
+APK/AAB certificate verification and `SHA256SUMS` publication require the normal
+release workflow with repository secrets and were intentionally not exercised.

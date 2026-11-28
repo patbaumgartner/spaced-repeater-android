@@ -27,6 +27,6 @@ The architecture follows one theme: **a thin, reactive UI over a local, testable
 ## Build Blocks at a Glance
 
 - **UI layer** (`ui/`) — Compose screens + ViewModels; no business logic.
-- **Domain layer** (`domain/`) — models and the pure SM-2 scheduler; framework-free.
+- **Domain layer** (`domain/model/`) — framework-free models; the pure SM-2 scheduler is in `data/scheduler/`.
 - **Data layer** (`data/`) — Room DAOs, repositories, importer/parser.
 - **Service layer** (`service/`) — WorkManager-based reminders.

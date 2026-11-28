@@ -5,10 +5,14 @@ changed behavior are easiest to review.
 
 ## Set up a development environment
 
-Install JDK 27 and Android SDK 37, then clone the repository. Android Studio can
-open the root directory directly. Command-line builds use the checked-in Gradle
-wrapper and need `ANDROID_HOME` set or an `sdk.dir` entry in
+Install JDK 27 and Android SDK Platform 37.1, then clone the repository.
+Android Studio can open the root directory directly. Command-line builds use the
+checked-in Gradle wrapper and need `ANDROID_HOME` set or an `sdk.dir` entry in
 `local.properties`.
+
+Full validation also requires Python 3 with PyYAML (verify with
+`python3 -c 'import yaml'`), `jq`, `yamllint`, and ShellCheck. The workflow
+controls use Python/PyYAML and `jq`; none of the current scripts requires Node.
 
 ```bash
 git clone https://github.com/patbaumgartner/spaced-repeater-android.git
@@ -54,9 +58,10 @@ ruleset bypass list for that reason.
 Downloadable builds are published from `.github/workflows/release.yml` (see
 [ADR-0009](docs/adr/0009-release-signing-and-distribution.md)):
 
-- Every push to `main` rebuilds the **Snapshot** prerelease with a signed APK.
-- Pushing a signed tag `vX.Y.Z` publishes a **release**: signed APK + AAB +
-  `SHA256SUMS`. The tag sets the version (`v0.1.0` → versionName `0.1.0`,
+- Every push to `main` rebuilds the **Snapshot** prerelease with a signed
+  universal APK and `SHA256SUMS`.
+- Pushing a signed tag `vX.Y.Z` publishes a **release**: signed universal APK,
+  signed AAB, and `SHA256SUMS`. The tag sets the version (`v0.1.0` → versionName `0.1.0`,
   versionCode `100`):
 
   ```bash
@@ -81,13 +86,64 @@ or create a git-ignored `keystore.properties` with `storeFile`,
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew assembleDebugAndroidTest
+./gradlew bundleRelease
+./scripts/test-dependabot-ruleset.sh
+./scripts/test-dependabot-update-type.sh
+./scripts/test-release-workflow.sh
 yamllint .
+find . -name '*.sh' -not -path './*/build/*' -exec shellcheck {} +
 git diff --check
 ```
 
 If you changed DAOs, entities, or Room queries, also run the instrumented
 DAO tests on a device or emulator (`./gradlew connectedDebugAndroidTest`); CI
 runs them automatically.
+
+## Hosted merge protection
+
+The active `protect-main` ruleset targets `refs/heads/main` and requires
+`Test, lint, and package`, `Instrumented tests (emulator)`, and `CodeQL`, with
+strict up-to-date enforcement. The first context is CI's aggregate `verify`
+job: it fails unless both `Build and unit tests` and the instrumented job
+succeed. The separately required instrumented context remains intentional.
+
+Dependabot auto-merge accepts only explicit semver-patch and semver-minor
+metadata; empty, unknown, and major update types are rejected before protection
+checks. Patch/minor auto-merge then makes only a metadata-readable, paginated
+request to `repos/$GITHUB_REPOSITORY/rules/branches/main?per_page=100`. It fails
+closed on API errors and requires a `required_status_checks` rule containing the
+exact `Test, lint, and package` context. It does not call classic branch
+protection or ruleset-detail endpoints and never checks out or executes
+pull-request code under `pull_request_target`.
+
+### Dependabot auto-merge token
+
+Only the final `gh pr merge` step uses `secrets.AUTO_MERGE_TOKEN`; Dependabot
+metadata fetching and the branch-rules preflight keep using `GITHUB_TOKEN`. The
+merge step has a nonempty-token guard that fails without logging the value.
+Configure a fine-grained personal access token restricted to this repository
+with:
+
+- **Contents: Read and write** to create the merged commit on `main`.
+- **Pull requests: Read and write** to enable auto-merge on eligible PRs.
+- **Workflows: Read and write** to merge dependency PRs that also update
+  `.github/workflows/**`.
+
+Using the dedicated token for the merge allows the resulting `main` push to
+trigger post-merge CI and Snapshot publication. Keep the token out of source,
+logs, and local validation fixtures, and rotate/revoke it through GitHub when
+needed. No token is needed to run the local controls.
+
+Run `scripts/test-dependabot-ruleset.sh` for paginated branch-rule fixtures,
+`scripts/test-dependabot-update-type.sh` for eligibility controls, and
+`scripts/test-release-workflow.sh` for release SDK coverage. CI runs all three
+controls in its validation step after installing PyYAML/Yamllint in an isolated
+Python environment and checking `jq`.
+
+**Hosted state verified 2026-11-27:** `main` had zero hosted check runs. The
+ruleset requirements above describe merge policy, not passing-check evidence
+for the current main commit; use an actual PR or workflow run for build health.
 
 ## Pull requests
 

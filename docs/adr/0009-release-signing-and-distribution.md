@@ -27,9 +27,9 @@ Options:
 - **Distribution:** `.github/workflows/release.yml` publishes to the GitHub
   Releases page:
   - every push to `main` rebuilds the **Snapshot** prerelease
-    (tag `snapshot`) with a signed APK and `SHA256SUMS`;
-  - every push of a tag `vX.Y.Z` creates a release with a signed APK, a
-    signed AAB (for Play-style distribution), `SHA256SUMS`, install
+    (tag `snapshot`) with a signed universal APK and `SHA256SUMS`;
+  - every push of a tag `vX.Y.Z` creates a release with a signed universal APK,
+    a signed AAB (for Play-style distribution), `SHA256SUMS`, install
     instructions, and the signer certificate fingerprint. The tag sets
     `versionName` (`v0.1.0` → `0.1.0`) and `versionCode`
     (`major*10000 + minor*100 + patch` → `100`); snapshot builds use
@@ -57,8 +57,12 @@ Options:
 
 ## Consequences
 
-- Users can download and install the APK directly from the Releases page;
-  releases and snapshots share one key, so they update in place.
+- Users can download and install the APK directly from the Releases page.
+  Releases and snapshots share one key, so newer versions update in place.
+  Snapshot versionCodes exceed tag-derived stable codes, therefore Android
+  blocks direct Snapshot → Stable installation as a downgrade. myApps channel
+  switching is manual-only and displays a data-loss warning; it does not
+  automatically uninstall. A manual uninstall/reinstall can lose local data.
 - The release key is a single point of failure: the offline backup must be
   kept safe (password manager / HSM). Losing it means future updates cannot
   be signed with the same key and users would have to reinstall. Key
